@@ -16,8 +16,8 @@ class ExerciseSession {
 }
 
 class SetEntry {
-  final int reps;
-  final double? weight; // optional
+  int reps;
+  double? weight; // optional
 
   SetEntry({required this.reps, this.weight});
 }
@@ -124,35 +124,70 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
                 },
               ),
             ),
+            TextField(
+              controller: _repsController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Reps',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _weightController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Weight (optional)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 16),
             Row(
               children: [
+                // PREVIOUS (left)
                 Expanded(
-                  child: TextField(
-                    controller: _repsController,
-                    decoration: const InputDecoration(labelText: 'Reps'),
-                    keyboardType: TextInputType.number,
+                  child: currentExerciseIndex > 0
+                      ? OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              currentExerciseIndex--;
+                            });
+                          },
+                          child: const Text('Previous'),
+                        )
+                      : const SizedBox(),
+                ),
+
+                const SizedBox(width: 12),
+
+                // ADD SET (center)
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _addSet,
+                    child: const Text('Add Set'),
                   ),
                 ),
-                const SizedBox(width: 8),
+
+                const SizedBox(width: 12),
+
+                // NEXT / FINISH (right)
                 Expanded(
-                  child: TextField(
-                    controller: _weightController,
-                    decoration: const InputDecoration(labelText: 'Weight'),
-                    keyboardType: TextInputType.number,
-                  ),
+                  child: currentExerciseIndex < exerciseSessions.length - 1
+                      ? OutlinedButton(
+                          onPressed: _nextExercise,
+                          child: const Text('Next'),
+                        )
+                      : ElevatedButton(
+                          onPressed: _nextExercise,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                          ),
+                          child: const Text('Finish'),
+                        ),
                 ),
-                IconButton(icon: const Icon(Icons.add), onPressed: _addSet),
               ],
             ),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: _nextExercise,
-              child: Text(
-                currentExerciseIndex < exerciseSessions.length - 1
-                    ? 'Next Exercise'
-                    : 'Finish Workout',
-              ),
-            ),
           ],
         ),
       ),
