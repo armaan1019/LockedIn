@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 class WorkoutSession {
   final String title;
   final List<ExerciseSession> exercises;
+  final DateTime date;
 
-  WorkoutSession({required this.title, required this.exercises});
+  WorkoutSession({required this.title, required this.exercises, required this.date});
 }
 
 class ExerciseSession {
@@ -40,10 +41,7 @@ class Exercise {
   final int sets;
   final int reps;
 
-  Exercise({
-    required this.name, 
-    required this.sets, 
-    required this.reps});
+  Exercise({required this.name, required this.sets, required this.reps});
 }
 
 class WorkoutTrackerPage extends StatefulWidget {
@@ -106,8 +104,10 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            Text(currentExercise.name,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(
+              currentExercise.name,
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 16),
             Expanded(
               child: ListView.builder(
@@ -117,8 +117,9 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
                   return ListTile(
                     leading: Text('Set ${index + 1}'),
                     title: Text('${set.reps} reps'),
-                    subtitle:
-                        set.weight != null ? Text('${set.weight} kg') : null,
+                    subtitle: set.weight != null
+                        ? Text('${set.weight} lbs')
+                        : null,
                   );
                 },
               ),
@@ -140,19 +141,18 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
                     keyboardType: TextInputType.number,
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: _addSet,
-                )
+                IconButton(icon: const Icon(Icons.add), onPressed: _addSet),
               ],
             ),
             const SizedBox(height: 12),
             ElevatedButton(
               onPressed: _nextExercise,
-              child: Text(currentExerciseIndex < exerciseSessions.length - 1
-                  ? 'Next Exercise'
-                  : 'Finish Workout'),
-            )
+              child: Text(
+                currentExerciseIndex < exerciseSessions.length - 1
+                    ? 'Next Exercise'
+                    : 'Finish Workout',
+              ),
+            ),
           ],
         ),
       ),

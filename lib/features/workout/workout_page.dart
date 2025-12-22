@@ -29,6 +29,30 @@ class _WorkoutPageState extends State<WorkoutPage> {
   ),
 ];
 
+  final List<WorkoutSession> _history = [];
+
+  void _startWorkout(Workout workout) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => WorkoutTrackerPage(workout: workout),
+      ),
+    );
+
+    if (result != null && result is List<ExerciseSession>) {
+      setState(() {
+        _history.insert(
+          0,
+          WorkoutSession(
+            title: workout.title,
+            exercises: result,
+            date: DateTime.now(),
+          ),
+        );
+      });
+    }
+  }
+
   void _addWorkout(Workout workout) {
     setState(() {
       _workouts.add(workout);
@@ -47,6 +71,62 @@ class _WorkoutPageState extends State<WorkoutPage> {
       ),
     );
   }
+
+  void _showPastWorkouts(Workout workout) {
+  final pastSessions = _history
+      .where((s) => s.title == workout.title)
+      .toList();
+
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    builder: (context) => Padding(
+      padding: const EdgeInsets.all(16),
+      child: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: pastSessions.isEmpty
+            ? const Center(child: Text('No past workouts yet.'))
+            : ListView.builder(
+                itemCount: pastSessions.length,
+                itemBuilder: (context, index) {
+                  final session = pastSessions[index];
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 6),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Date: ${session.date.toLocal().toString().split(' ')[0]}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          ...session.exercises.map((e) => Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(e.name,
+                                      style: const TextStyle(
+                                          fontWeight: FontWeight.w600)),
+                                  ...e.sets.asMap().entries.map((entry) {
+                                    final i = entry.key;
+                                    final set = entry.value;
+                                    return Text(
+                                        'Set ${i + 1}: ${set.reps} reps${set.weight != null ? ' (${set.weight} lbs)' : ''}');
+                                  }),
+                                  const SizedBox(height: 6),
+                                ],
+                              )),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              ),
+      ),
+    ),
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +147,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
                   itemCount: _workouts.length,
                   itemBuilder: (context, index) {
                     final w = _workouts[index];
-                    return WorkoutCard(workout: w);
+                    return WorkoutCard(
+                      workout: w,
+                      onStart: () => _startWorkout(w),
+                      onPastWorkouts: () => _showPastWorkouts(w),
+                    );
                   },
                 ),
               ),
@@ -198,14 +282,20 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
 
 class WorkoutCard extends StatelessWidget {
   final Workout workout;
+  final VoidCallback onStart;
+  final VoidCallback onPastWorkouts;
 
-  const WorkoutCard({super.key, required this.workout});
+  const WorkoutCard({
+    super.key,
+    required this.workout,
+    required this.onStart,
+    required this.onPastWorkouts,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Card(
       margin: const EdgeInsets.symmetric(vertical: 8),
-      elevation: 2,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -214,50 +304,23 @@ class WorkoutCard extends StatelessWidget {
             Text(workout.title,
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: workout.exercises
-                  .map((e) => Text('${e.name}: ${e.sets} x ${e.reps}',
-                      style: const TextStyle(color: Colors.grey)))
-                  .toList(),
-            ),
+            ...workout.exercises
+                .map((e) => Text('${e.name}: ${e.sets} x ${e.reps}',
+                    style: const TextStyle(color: Colors.grey)))
+                .toList(),
             const SizedBox(height: 12),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    const Icon(Icons.timer, size: 16),
-                    const SizedBox(width: 4),
-                    Text('${workout.duration} min'),
-                  ],
+                ElevatedButton(
+                  onPressed: onStart,
+                  child: const Text('Start Workout'),
                 ),
-                Row(
-                  children: [
-                    const Icon(Icons.local_fire_department, size: 16),
-                    const SizedBox(width: 4),
-                    Text('${workout.calories} cal'),
-                  ],
+                const SizedBox(width: 12), // space between buttons
+                ElevatedButton(
+                  onPressed: onPastWorkouts,
+                  child: const Text('Past Workouts'),
                 ),
               ],
-            ),
-            const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () async {
-                // Start the live workout
-                final result = await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => WorkoutTrackerPage(workout: workout)),
-                );
-
-                if (result != null) {
-                  // result is List<ExerciseSession>
-                  // You can save it to history or show a summary
-                  print('Workout finished: $result');
-                }
-              },
-              child: const Text('Start Workout'),
             ),
           ],
         ),
@@ -265,8 +328,6 @@ class WorkoutCard extends StatelessWidget {
     );
   }
 }
-
-
 
 class ExerciseInput extends StatelessWidget {
   final TextEditingController nameController = TextEditingController();
