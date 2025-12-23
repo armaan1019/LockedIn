@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'workout_summary_page.dart';
 
 class WorkoutSession {
+  final String id;
   final String title;
   final List<ExerciseSession> exercises;
   final DateTime date;
 
   WorkoutSession({
+    required this.id,
     required this.title,
     required this.exercises,
     required this.date,
@@ -105,7 +107,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
       setState(() {
         currentExerciseIndex++;
       });
-    } 
+    }
   }
 
   void _deleteSet(int index) {
@@ -161,6 +163,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
 
   Future<void> _finishWorkout() async {
     final session = WorkoutSession(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: widget.workout.title,
       date: DateTime.now(),
       exercises: exerciseSessions,
