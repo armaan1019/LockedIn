@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
+import 'workout_summary_page.dart';
 
 class WorkoutSession {
   final String title;
   final List<ExerciseSession> exercises;
   final DateTime date;
 
-  WorkoutSession({required this.title, required this.exercises, required this.date});
+  WorkoutSession({
+    required this.title,
+    required this.exercises,
+    required this.date,
+  });
 }
 
 class ExerciseSession {
@@ -46,8 +51,13 @@ class Exercise {
 
 class WorkoutTrackerPage extends StatefulWidget {
   final Workout workout;
+  final WorkoutSession? existingSession;
 
-  const WorkoutTrackerPage({super.key, required this.workout});
+  const WorkoutTrackerPage({
+    super.key,
+    required this.workout,
+    this.existingSession,
+  });
 
   @override
   State<WorkoutTrackerPage> createState() => _WorkoutTrackerPageState();
@@ -63,9 +73,16 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
   @override
   void initState() {
     super.initState();
-    exerciseSessions = widget.workout.exercises
-        .map((e) => ExerciseSession(name: e.name, sets: []))
-        .toList();
+
+    if (widget.existingSession != null) {
+      // Editing an existing workout
+      exerciseSessions = widget.existingSession!.exercises;
+    } else {
+      // New workout
+      exerciseSessions = widget.workout.exercises
+          .map((e) => ExerciseSession(name: e.name, sets: []))
+          .toList();
+    }
   }
 
   void _addSet() {
@@ -83,14 +100,81 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     }
   }
 
-  void _nextExercise() {
+  Future<void> _nextExercise() async {
     if (currentExerciseIndex < exerciseSessions.length - 1) {
       setState(() {
         currentExerciseIndex++;
       });
-    } else {
-      // Workout finished, maybe save or show summary
-      Navigator.pop(context, exerciseSessions);
+    } 
+  }
+
+  void _deleteSet(int index) {
+    setState(() {
+      exerciseSessions[currentExerciseIndex].sets.removeAt(index);
+    });
+  }
+
+  void _editSet(SetEntry set) {
+    final repsController = TextEditingController(text: set.reps.toString());
+    final weightController = TextEditingController(
+      text: set.weight?.toString() ?? '',
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Set'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: repsController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Reps'),
+            ),
+            TextField(
+              controller: weightController,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Weight (optional)'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              setState(() {
+                set.reps = int.tryParse(repsController.text) ?? set.reps;
+                set.weight = double.tryParse(weightController.text);
+              });
+              Navigator.pop(context);
+            },
+            child: const Text('Save'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _finishWorkout() async {
+    final session = WorkoutSession(
+      title: widget.workout.title,
+      date: DateTime.now(),
+      exercises: exerciseSessions,
+    );
+
+    // Push summary page and wait for the user to tap "Done"
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => WorkoutSummaryPage(session: session)),
+    );
+
+    // Only send session back to parent if user confirms
+    if (result != null) {
+      Navigator.pop(context, result); // Pass completed session back
     }
   }
 
@@ -114,12 +198,28 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
                 itemCount: currentExercise.sets.length,
                 itemBuilder: (context, index) {
                   final set = currentExercise.sets[index];
-                  return ListTile(
-                    leading: Text('Set ${index + 1}'),
-                    title: Text('${set.reps} reps'),
-                    subtitle: set.weight != null
-                        ? Text('${set.weight} lbs')
-                        : null,
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 4),
+                    child: ListTile(
+                      leading: Text('Set ${index + 1}'),
+                      title: Text('${set.reps} reps'),
+                      subtitle: set.weight != null
+                          ? Text('${set.weight} lbs')
+                          : const Text('No weight'),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _editSet(set),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () => _deleteSet(index),
+                          ),
+                        ],
+                      ),
+                    ),
                   );
                 },
               ),
@@ -178,11 +278,11 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
                           child: const Text('Next'),
                         )
                       : ElevatedButton(
-                          onPressed: _nextExercise,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
+                            backgroundColor: Colors.green, // visually different
                           ),
-                          child: const Text('Finish'),
+                          onPressed: _finishWorkout,
+                          child: const Text('Finish Workout'),
                         ),
                 ),
               ],

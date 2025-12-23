@@ -39,16 +39,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
       ),
     );
 
-    if (result != null && result is List<ExerciseSession>) {
+    if (result != null && result is WorkoutSession) {
       setState(() {
-        _history.insert(
-          0,
-          WorkoutSession(
-            title: workout.title,
-            exercises: result,
-            date: DateTime.now(),
-          ),
-        );
+        _history.insert(0, result);
       });
     }
   }
