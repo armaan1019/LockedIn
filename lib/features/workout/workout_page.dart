@@ -144,10 +144,49 @@ class _WorkoutPageState extends State<WorkoutPage> {
                       workout: w,
                       onStart: () => _startWorkout(w),
                       onPastWorkouts: () => _showPastWorkouts(w),
+                      onEdit: (workoutToEdit) {
+                        showModalBottomSheet(
+                          context: context,
+                          isScrollControlled: true,
+                          builder: (context) => Padding(
+                            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                            child: AddWorkoutForm(
+                              existingWorkout: workoutToEdit,
+                              onSave: (updatedWorkout) {
+                                setState(() {
+                                  _workouts[index] = updatedWorkout;
+                                });
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      onDelete: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('Delete Workout'),
+                            content: const Text('Are you sure you want to delete this workout?'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                              ElevatedButton(
+                                onPressed: () {
+                                  setState(() {
+                                    _workouts.removeAt(index);
+                                  });
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('Delete'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
-              ),
+              )
             ],
           ),
         ),
@@ -162,8 +201,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
 class AddWorkoutForm extends StatefulWidget {
   final void Function(Workout) onSave;
+  final Workout? existingWorkout; // 🔹 new
 
-  const AddWorkoutForm({super.key, required this.onSave});
+  const AddWorkoutForm({super.key, required this.onSave, this.existingWorkout});
 
   @override
   State<AddWorkoutForm> createState() => _AddWorkoutFormState();
@@ -171,20 +211,31 @@ class AddWorkoutForm extends StatefulWidget {
 
 class _AddWorkoutFormState extends State<AddWorkoutForm> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final List<ExerciseInput> _exerciseInputs = [ExerciseInput()];
+  late final TextEditingController _titleController;
+  late List<ExerciseInput> _exerciseInputs;
 
-  void _addExerciseField() {
-    setState(() {
-      _exerciseInputs.add(ExerciseInput());
-    });
+  @override
+  void initState() {
+    super.initState();
+    _titleController = TextEditingController(
+      text: widget.existingWorkout?.title ?? '',
+    );
+
+    if (widget.existingWorkout != null) {
+      _exerciseInputs = widget.existingWorkout!.exercises
+          .map((e) => ExerciseInput(
+                name: e.name,
+                sets: e.sets,
+                reps: e.reps,
+              ))
+          .toList();
+    } else {
+      _exerciseInputs = [ExerciseInput()];
+    }
   }
 
-  void _removeExerciseField(int index) {
-    setState(() {
-      _exerciseInputs.removeAt(index);
-    });
-  }
+  void _addExerciseField() => setState(() => _exerciseInputs.add(ExerciseInput()));
+  void _removeExerciseField(int index) => setState(() => _exerciseInputs.removeAt(index));
 
   void _save() {
     if (_formKey.currentState!.validate()) {
@@ -199,8 +250,8 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
       final workout = Workout(
         title: _titleController.text,
         exercises: exercises,
-        duration: exercises.length * 10, // optional default
-        calories: exercises.length * 50,  // optional default
+        duration: exercises.length * 10,
+        calories: exercises.length * 50,
       );
 
       widget.onSave(workout);
@@ -224,9 +275,9 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Add New Workout',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                widget.existingWorkout != null ? 'Edit Workout' : 'Add New Workout',
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               TextFormField(
                 controller: _titleController,
@@ -277,12 +328,16 @@ class WorkoutCard extends StatelessWidget {
   final Workout workout;
   final VoidCallback onStart;
   final VoidCallback onPastWorkouts;
+  final void Function(Workout)? onEdit; // 🔹 new
+  final VoidCallback? onDelete; // 🔹 new
 
   const WorkoutCard({
     super.key,
     required this.workout,
     required this.onStart,
     required this.onPastWorkouts,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -304,15 +359,20 @@ class WorkoutCard extends StatelessWidget {
             const SizedBox(height: 12),
             Row(
               children: [
-                ElevatedButton(
-                  onPressed: onStart,
-                  child: const Text('Start Workout'),
-                ),
-                const SizedBox(width: 12), // space between buttons
-                ElevatedButton(
-                  onPressed: onPastWorkouts,
-                  child: const Text('Past Workouts'),
-                ),
+                ElevatedButton(onPressed: onStart, child: const Text('Start Workout')),
+                const SizedBox(width: 8),
+                ElevatedButton(onPressed: onPastWorkouts, child: const Text('Past Workouts')),
+                const SizedBox(width: 8),
+                if (onEdit != null)
+                  IconButton(
+                    icon: const Icon(Icons.edit, color: Colors.blue),
+                    onPressed: () => onEdit!(workout),
+                  ),
+                if (onDelete != null)
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: onDelete,
+                  ),
               ],
             ),
           ],
@@ -323,11 +383,18 @@ class WorkoutCard extends StatelessWidget {
 }
 
 class ExerciseInput extends StatelessWidget {
-  final TextEditingController nameController = TextEditingController();
-  final TextEditingController setsController = TextEditingController();
-  final TextEditingController repsController = TextEditingController();
+  final TextEditingController nameController;
+  final TextEditingController setsController;
+  final TextEditingController repsController;
 
-  ExerciseInput({super.key});
+  ExerciseInput({
+    super.key,
+    String? name,
+    int? sets,
+    int? reps,
+  })  : nameController = TextEditingController(text: name ?? ''),
+        setsController = TextEditingController(text: sets?.toString() ?? ''),
+        repsController = TextEditingController(text: reps?.toString() ?? '');
 
   void dispose() {
     nameController.dispose();
