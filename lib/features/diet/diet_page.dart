@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'services/food_api.dart';
+import 'models/food.dart';
+import 'barcode_scanner_page.dart';
+
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
@@ -13,6 +17,44 @@ class _DietPageState extends State<DietPage> {
     Meal(name: 'Lunch', items: 'Grilled Chicken Salad', calories: 600),
     Meal(name: 'Dinner', items: 'Salmon, Rice, Veggies', calories: 700),
   ];
+
+  Future<void> _scanBarcodeAndAddMeal() async {
+    // Navigate to barcode scanner and wait for result
+    final barcode = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const BarcodeScannerPage(),
+      ),
+    );
+
+    if (barcode == null) return;
+
+    // Fetch food from API
+    final food = await FoodApi.fetchByBarcode(barcode);
+
+    if (food == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Food not found')),
+      );
+      return;
+    }
+
+    // Open AddMealForm with auto-filled food
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: AddMealForm(
+          onSave: _addMeal,
+          scannedFood: food,
+        ),
+      ),
+    );
+  }
+
 
   void _addMeal(Meal meal) {
     setState(() {
@@ -85,8 +127,8 @@ class _DietPageState extends State<DietPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showAddMealSheet,
-        child: const Icon(Icons.add),
+        onPressed: _scanBarcodeAndAddMeal,
+        child: const Icon(Icons.qr_code_scanner),
       ),
     );
   }
@@ -139,8 +181,13 @@ class _MacroInfo extends StatelessWidget {
 
 class AddMealForm extends StatefulWidget {
   final void Function(Meal) onSave;
+  final Food? scannedFood;
 
-  const AddMealForm({super.key, required this.onSave});
+  const AddMealForm({
+    super.key,
+    required this.onSave,
+    this.scannedFood,
+  });
 
   @override
   State<AddMealForm> createState() => _AddMealFormState();
@@ -151,6 +198,18 @@ class _AddMealFormState extends State<AddMealForm> {
   final _nameController = TextEditingController();
   final _itemsController = TextEditingController();
   final _caloriesController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+
+    if (widget.scannedFood != null) {
+      _nameController.text = widget.scannedFood!.name;
+      _itemsController.text = widget.scannedFood!.name;
+      _caloriesController.text =
+          widget.scannedFood!.calories.toString();
+    }
+  }
 
   @override
   void dispose() {
