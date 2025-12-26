@@ -259,16 +259,6 @@ class _CreateMealFormState extends State<CreateMealForm> {
     Navigator.pop(context);
   }
 
-  Ingredient _ingredientFromFood(Food food) {
-    return Ingredient(
-      name: food.name,
-      calories: food.calories,
-      protein: food.protein,
-      carbs: food.carbs,
-      fat: food.fat,
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Padding(
