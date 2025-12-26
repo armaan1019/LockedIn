@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'services/food_api.dart';
 import 'models/food.dart';
 import 'barcode_scanner_page.dart';
-
+import 'food_search_page.dart';
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
@@ -13,6 +13,15 @@ class DietPage extends StatefulWidget {
 
 class _DietPageState extends State<DietPage> {
   final List<Meal> _meals = [];
+
+  int get totalProtein =>
+    _meals.fold(0, (sum, meal) => sum + meal.protein);
+
+  int get totalCarbs =>
+      _meals.fold(0, (sum, meal) => sum + meal.carbs);
+
+  int get totalFat =>
+      _meals.fold(0, (sum, meal) => sum + meal.fat);
 
   Ingredient _ingredientFromFood(Food food) {
     return Ingredient(
@@ -139,9 +148,9 @@ class _DietPageState extends State<DietPage> {
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       _MacroInfo(label: 'Calories', value: totalCalories.toString()),
-                      _MacroInfo(label: 'Protein', value: '75g'),
-                      _MacroInfo(label: 'Carbs', value: '200g'),
-                      _MacroInfo(label: 'Fat', value: '60g'),
+                      _MacroInfo(label: 'Protein', value: '${totalProtein}g'),
+                      _MacroInfo(label: 'Carbs', value: '${totalCarbs}g'),
+                      _MacroInfo(label: 'Fat', value: '${totalFat}g'),
                     ],
                   ),
                 ),
@@ -250,6 +259,16 @@ class _CreateMealFormState extends State<CreateMealForm> {
     Navigator.pop(context);
   }
 
+  Ingredient _ingredientFromFood(Food food) {
+    return Ingredient(
+      name: food.name,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fat,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -277,7 +296,6 @@ class _CreateMealFormState extends State<CreateMealForm> {
               trailing: Text('${i.calories} cal'),
             ),
           ),
-
           TextButton.icon(
             icon: const Icon(Icons.add),
             label: const Text('Add Ingredient'),
@@ -296,7 +314,58 @@ class _CreateMealFormState extends State<CreateMealForm> {
               }
             },
           ),
+          TextButton.icon(
+            icon: const Icon(Icons.search),
+            label: const Text('Look up ingredient'),
+            onPressed: () async {
+              final controller = TextEditingController();
 
+              final query = await showDialog<String>(
+                context: context,
+                builder: (_) => AlertDialog(
+                  title: const Text('Search food'),
+                  content: TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(labelText: 'Food name'),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () =>
+                          Navigator.pop(context, controller.text),
+                      child: const Text('Search'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (query == null || query.isEmpty) return;
+
+              final food = await Navigator.push<Food>(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => FoodSearchPage(query: query.trim()),
+                ),
+              );
+
+              if (food == null) return;
+
+              setState(() {
+                _ingredients.add(
+                  Ingredient(
+                    name: food.name,
+                    calories: food.calories,
+                    protein: food.protein,
+                    carbs: food.carbs,
+                    fat: food.fat,
+                  ),
+                );
+              });
+            },
+          ),
           const SizedBox(height: 12),
 
           ElevatedButton(

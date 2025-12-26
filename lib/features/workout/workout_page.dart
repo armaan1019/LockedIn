@@ -357,12 +357,12 @@ class WorkoutCard extends StatelessWidget {
                     style: const TextStyle(color: Colors.grey)))
                 .toList(),
             const SizedBox(height: 12),
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 ElevatedButton(onPressed: onStart, child: const Text('Start Workout')),
-                const SizedBox(width: 8),
                 ElevatedButton(onPressed: onPastWorkouts, child: const Text('Past Workouts')),
-                const SizedBox(width: 8),
                 if (onEdit != null)
                   IconButton(
                     icon: const Icon(Icons.edit, color: Colors.blue),
@@ -374,7 +374,7 @@ class WorkoutCard extends StatelessWidget {
                     onPressed: onDelete,
                   ),
               ],
-            ),
+            )
           ],
         ),
       ),
