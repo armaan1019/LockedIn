@@ -12,11 +12,17 @@ class DietPage extends StatefulWidget {
 }
 
 class _DietPageState extends State<DietPage> {
-  final List<Meal> _meals = [
-    Meal(name: 'Breakfast', items: 'Oatmeal, Banana, Coffee', calories: 350),
-    Meal(name: 'Lunch', items: 'Grilled Chicken Salad', calories: 600),
-    Meal(name: 'Dinner', items: 'Salmon, Rice, Veggies', calories: 700),
-  ];
+  final List<Meal> _meals = [];
+
+  Ingredient _ingredientFromFood(Food food) {
+    return Ingredient(
+      name: food.name,
+      calories: food.calories,
+      protein: food.protein,
+      carbs: food.carbs,
+      fat: food.fat,
+    );
+  }
 
   Future<void> _scanBarcodeAndAddMeal() async {
     // Navigate to barcode scanner and wait for result
@@ -43,13 +49,13 @@ class _DietPageState extends State<DietPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Padding(
+      builder: (_) => Padding(
         padding: EdgeInsets.only(
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
-        child: AddMealForm(
+        child: CreateMealForm(
           onSave: _addMeal,
-          scannedFood: food,
+          initialIngredient: _ingredientFromFood(food),
         ),
       ),
     );
@@ -60,18 +66,51 @@ class _DietPageState extends State<DietPage> {
     setState(() {
       _meals.add(meal);
     });
-    Navigator.pop(context);
   }
 
-  void _showAddMealSheet() {
+  void _showCreateMealSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Padding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-        child: AddMealForm(onSave: _addMeal),
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: CreateMealForm(
+          onSave: _addMeal,
+        ),
       ),
+    );
+  }
+
+  void _showAddOptionsSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.edit),
+                title: const Text('Create meal manually'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showCreateMealSheet();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.qr_code_scanner),
+                title: const Text('Scan barcode'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _scanBarcodeAndAddMeal();
+                },
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -127,19 +166,11 @@ class _DietPageState extends State<DietPage> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _scanBarcodeAndAddMeal,
-        child: const Icon(Icons.qr_code_scanner),
+        onPressed: _showAddOptionsSheet,
+        child: const Icon(Icons.add),
       ),
     );
   }
-}
-
-class Meal {
-  final String name;
-  final String items;
-  final int calories;
-
-  Meal({required this.name, required this.items, required this.calories});
 }
 
 class MealCard extends StatelessWidget {
@@ -154,7 +185,9 @@ class MealCard extends StatelessWidget {
       elevation: 2,
       child: ListTile(
         title: Text(meal.name),
-        subtitle: Text(meal.items),
+        subtitle: Text(
+          meal.ingredients.map((i) => i.name).join(', '),
+        ),
         trailing: Text('${meal.calories} cal'),
       ),
     );
@@ -179,93 +212,149 @@ class _MacroInfo extends StatelessWidget {
   }
 }
 
-class AddMealForm extends StatefulWidget {
+class CreateMealForm extends StatefulWidget {
   final void Function(Meal) onSave;
-  final Food? scannedFood;
+  final Ingredient? initialIngredient;
 
-  const AddMealForm({
+  const CreateMealForm({
     super.key,
     required this.onSave,
-    this.scannedFood,
+    this.initialIngredient,
   });
 
   @override
-  State<AddMealForm> createState() => _AddMealFormState();
+  State<CreateMealForm> createState() => _CreateMealFormState();
 }
 
-class _AddMealFormState extends State<AddMealForm> {
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _itemsController = TextEditingController();
-  final _caloriesController = TextEditingController();
+class _CreateMealFormState extends State<CreateMealForm> {
+  final _mealNameController = TextEditingController();
+  final List<Ingredient> _ingredients = [];
 
   @override
   void initState() {
     super.initState();
-
-    if (widget.scannedFood != null) {
-      _nameController.text = widget.scannedFood!.name;
-      _itemsController.text = widget.scannedFood!.name;
-      _caloriesController.text =
-          widget.scannedFood!.calories.toString();
+    if (widget.initialIngredient != null) {
+      _ingredients.add(widget.initialIngredient!);
     }
   }
 
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _itemsController.dispose();
-    _caloriesController.dispose();
-    super.dispose();
-  }
+  void _saveMeal() {
+    if (_mealNameController.text.isEmpty || _ingredients.isEmpty) return;
 
-  void _save() {
-    if (_formKey.currentState!.validate()) {
-      final meal = Meal(
-        name: _nameController.text,
-        items: _itemsController.text,
-        calories: int.parse(_caloriesController.text),
-      );
-      widget.onSave(meal);
-    }
+    widget.onSave(
+      Meal(
+        name: _mealNameController.text,
+        ingredients: _ingredients,
+      ),
+    );
+    Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Wrap(
-          runSpacing: 12,
-          children: [
-            const Text(
-              'Add New Meal',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Create Meal',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+
+          TextField(
+            controller: _mealNameController,
+            decoration: const InputDecoration(labelText: 'Meal Name'),
+          ),
+
+          const SizedBox(height: 12),
+
+          const Text('Ingredients',
+              style: TextStyle(fontWeight: FontWeight.bold)),
+
+          ..._ingredients.map(
+            (i) => ListTile(
+              title: Text(i.name),
+              trailing: Text('${i.calories} cal'),
             ),
-            TextFormField(
-              controller: _nameController,
-              decoration: const InputDecoration(labelText: 'Meal Name'),
-              validator: (v) => v == null || v.isEmpty ? 'Enter meal name' : null,
-            ),
-            TextFormField(
-              controller: _itemsController,
-              decoration: const InputDecoration(labelText: 'Items'),
-              validator: (v) => v == null || v.isEmpty ? 'Enter items' : null,
-            ),
-            TextFormField(
-              controller: _caloriesController,
-              decoration: const InputDecoration(labelText: 'Calories'),
-              keyboardType: TextInputType.number,
-              validator: (v) =>
-                  v == null || int.tryParse(v) == null ? 'Enter a number' : null,
-            ),
-            ElevatedButton(
-              onPressed: _save,
-              child: const Text('Save Meal'),
-            ),
-          ],
-        ),
+          ),
+
+          TextButton.icon(
+            icon: const Icon(Icons.add),
+            label: const Text('Add Ingredient'),
+            onPressed: () async {
+              final ingredient =
+                  await showModalBottomSheet<Ingredient>(
+                context: context,
+                isScrollControlled: true,
+                builder: (_) => const AddIngredientForm(),
+              );
+
+              if (ingredient != null) {
+                setState(() {
+                  _ingredients.add(ingredient);
+                });
+              }
+            },
+          ),
+
+          const SizedBox(height: 12),
+
+          ElevatedButton(
+            onPressed: _saveMeal,
+            child: const Text('Save Meal'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AddIngredientForm extends StatefulWidget {
+  const AddIngredientForm({super.key});
+
+  @override
+  State<AddIngredientForm> createState() => _AddIngredientFormState();
+}
+
+class _AddIngredientFormState extends State<AddIngredientForm> {
+  final name = TextEditingController();
+  final calories = TextEditingController();
+  final protein = TextEditingController();
+  final carbs = TextEditingController();
+  final fat = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('Add Ingredient',
+              style: TextStyle(fontSize: 18)),
+
+          TextField(controller: name, decoration: const InputDecoration(labelText: 'Name')),
+          TextField(controller: calories, decoration: const InputDecoration(labelText: 'Calories'), keyboardType: TextInputType.number),
+          TextField(controller: protein, decoration: const InputDecoration(labelText: 'Protein'), keyboardType: TextInputType.number),
+          TextField(controller: carbs, decoration: const InputDecoration(labelText: 'Carbs'), keyboardType: TextInputType.number),
+          TextField(controller: fat, decoration: const InputDecoration(labelText: 'Fat'), keyboardType: TextInputType.number),
+
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(
+                context,
+                Ingredient(
+                  name: name.text,
+                  calories: int.parse(calories.text),
+                  protein: int.parse(protein.text),
+                  carbs: int.parse(carbs.text),
+                  fat: int.parse(fat.text),
+                ),
+              );
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
     );
   }
