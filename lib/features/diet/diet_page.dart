@@ -25,11 +25,8 @@ class _DietPageState extends State<DietPage> {
 
   Ingredient _ingredientFromFood(Food food) {
     return Ingredient(
-      name: food.name,
-      calories: food.calories,
-      protein: food.protein,
-      carbs: food.carbs,
-      fat: food.fat,
+      food: food,
+      grams: 100.0,
     );
   }
 
@@ -290,16 +287,18 @@ class _CreateMealFormState extends State<CreateMealForm> {
             icon: const Icon(Icons.add),
             label: const Text('Add Ingredient'),
             onPressed: () async {
-              final ingredient =
-                  await showModalBottomSheet<Ingredient>(
+              // Open the manual ingredient entry screen
+              final ingredient = await showModalBottomSheet<Ingredient>(
                 context: context,
                 isScrollControlled: true,
-                builder: (_) => const AddIngredientForm(),
+                builder: (_) => AddIngredientForm(),
               );
 
               if (ingredient != null) {
-                setState(() {
-                  _ingredients.add(ingredient);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  setState(() {
+                    _ingredients.add(ingredient);
+                  });
                 });
               }
             },
@@ -308,14 +307,15 @@ class _CreateMealFormState extends State<CreateMealForm> {
             icon: const Icon(Icons.search),
             label: const Text('Look up ingredient'),
             onPressed: () async {
-              final controller = TextEditingController();
+              final queryController = TextEditingController();
 
+              // Ask the user for a search query
               final query = await showDialog<String>(
                 context: context,
                 builder: (_) => AlertDialog(
                   title: const Text('Search food'),
                   content: TextField(
-                    controller: controller,
+                    controller: queryController,
                     decoration: const InputDecoration(labelText: 'Food name'),
                   ),
                   actions: [
@@ -324,8 +324,7 @@ class _CreateMealFormState extends State<CreateMealForm> {
                       child: const Text('Cancel'),
                     ),
                     ElevatedButton(
-                      onPressed: () =>
-                          Navigator.pop(context, controller.text),
+                      onPressed: () => Navigator.pop(context, queryController.text),
                       child: const Text('Search'),
                     ),
                   ],
@@ -334,26 +333,19 @@ class _CreateMealFormState extends State<CreateMealForm> {
 
               if (query == null || query.isEmpty) return;
 
-              final food = await Navigator.push<Food>(
+              // Open FoodSearchPage and wait for an Ingredient
+              final ingredient = await Navigator.push<Ingredient>(
                 context,
                 MaterialPageRoute(
                   builder: (_) => FoodSearchPage(query: query.trim()),
                 ),
               );
 
-              if (food == null) return;
-
-              setState(() {
-                _ingredients.add(
-                  Ingredient(
-                    name: food.name,
-                    calories: food.calories,
-                    protein: food.protein,
-                    carbs: food.carbs,
-                    fat: food.fat,
-                  ),
-                );
-              });
+              if (ingredient != null) {
+                setState(() {
+                  _ingredients.add(ingredient);
+                });
+              }
             },
           ),
           const SizedBox(height: 12),
@@ -400,14 +392,19 @@ class _AddIngredientFormState extends State<AddIngredientForm> {
 
           ElevatedButton(
             onPressed: () {
+              final food = Food(
+                name: name.text,
+                caloriesPer100g: int.parse(calories.text),
+                proteinPer100g: int.parse(protein.text),
+                carbsPer100g: int.parse(carbs.text),
+                fatPer100g: int.parse(fat.text),
+              );
+
               Navigator.pop(
                 context,
                 Ingredient(
-                  name: name.text,
-                  calories: int.parse(calories.text),
-                  protein: int.parse(protein.text),
-                  carbs: int.parse(carbs.text),
-                  fat: int.parse(fat.text),
+                  food: food,
+                  grams: 100.0, // default serving size
                 ),
               );
             },

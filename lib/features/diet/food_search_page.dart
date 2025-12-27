@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'services/food_api.dart';
 import 'models/food.dart';
+import 'add_ingredient_page.dart';
 
 class FoodSearchPage extends StatefulWidget {
   final String query;
@@ -51,12 +52,25 @@ class _FoodSearchPageState extends State<FoodSearchPage> {
               return ListTile(
                 title: Text(food.name),
                 subtitle: Text(
-                  '${food.calories} kcal · '
-                  'P ${food.protein}g · '
-                  'C ${food.carbs}g · '
-                  'F ${food.fat}g',
+                  '${food.caloriesPer100g} kcal/100g · '
+                  'P ${food.proteinPer100g}g · '
+                  'C ${food.carbsPer100g}g · '
+                  'F ${food.fatPer100g}g',
                 ),
-                onTap: () => Navigator.pop(context, food),
+                onTap: () async {
+                  // Go to the grams selector page
+                  final ingredient = await Navigator.push<Ingredient>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => AddIngredientPage(food: food),
+                    ),
+                  );
+
+                  if (ingredient != null) {
+                    // Return the ingredient to CreateMealForm
+                    Navigator.pop(context, ingredient);
+                  }
+                },
               );
             },
           );
