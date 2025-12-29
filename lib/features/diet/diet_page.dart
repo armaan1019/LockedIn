@@ -277,13 +277,51 @@ class _CreateMealFormState extends State<CreateMealForm> {
           const Text('Ingredients',
               style: TextStyle(fontWeight: FontWeight.bold)),
 
-          ..._ingredients.map(
-            (i) => ListTile(
-              title: Text(i.name),
-              subtitle: Text('${(i.grams / i.food.defaultServingGrams).toStringAsFixed(1)} servings'),
-              trailing: Text('${i.calories} cal'),
-            ),
-          ),
+          ..._ingredients.asMap().entries.map((entry) {
+            final index = entry.key;
+            final ingredient = entry.value;
+
+            return ListTile(
+              title: Text(ingredient.name),
+              subtitle: Text(
+                '${ingredient.servings.toStringAsFixed(1)} servings',
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('${ingredient.calories} cal'),
+                  IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (_) => AlertDialog(
+                          title: const Text('Remove ingredient?'),
+                          content: Text('Remove ${ingredient.name}?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Remove'),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        setState(() {
+                          _ingredients.removeAt(index);
+                        });
+                      }
+                    },
+                  ),
+                ],
+              ),
+            );
+          }),
           TextButton.icon(
             icon: const Icon(Icons.add),
             label: const Text('Add Ingredient'),
