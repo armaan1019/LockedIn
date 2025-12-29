@@ -26,7 +26,7 @@ class _DietPageState extends State<DietPage> {
   Ingredient _ingredientFromFood(Food food) {
     return Ingredient(
       food: food,
-      grams: 100.0,
+      servings: 1.0,
     );
   }
 
@@ -280,6 +280,7 @@ class _CreateMealFormState extends State<CreateMealForm> {
           ..._ingredients.map(
             (i) => ListTile(
               title: Text(i.name),
+              subtitle: Text('${(i.grams / i.food.defaultServingGrams).toStringAsFixed(1)} servings'),
               trailing: Text('${i.calories} cal'),
             ),
           ),
@@ -404,7 +405,7 @@ class _AddIngredientFormState extends State<AddIngredientForm> {
                 context,
                 Ingredient(
                   food: food,
-                  grams: 100.0, // default serving size
+                  servings: 1.0, // default serving size
                 ),
               );
             },

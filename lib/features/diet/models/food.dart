@@ -4,6 +4,7 @@ class Food {
   final int proteinPer100g;
   final int carbsPer100g;
   final int fatPer100g;
+  final double defaultServingGrams; // e.g., 28g for 1 slice of bacon
 
   Food({
     required this.name,
@@ -11,37 +12,40 @@ class Food {
     required this.proteinPer100g,
     required this.carbsPer100g,
     required this.fatPer100g,
+    this.defaultServingGrams = 100.0,
   });
 
-  // Scaling logic
-  int caloriesFor(double grams) =>
-      (caloriesPer100g * grams / 100).round();
+  // Calculate nutrition for a given serving count
+  int caloriesForServings(double servings) =>
+      ((caloriesPer100g / 100) * defaultServingGrams * servings).round();
 
-  int proteinFor(double grams) =>
-      (proteinPer100g * grams / 100).round();
+  double proteinForServings(double servings) =>
+      ((proteinPer100g / 100) * defaultServingGrams * servings);
 
-  int carbsFor(double grams) =>
-      (carbsPer100g * grams / 100).round();
+  double carbsForServings(double servings) =>
+      ((carbsPer100g / 100) * defaultServingGrams * servings);
 
-  int fatFor(double grams) =>
-      (fatPer100g * grams / 100).round();
+  double fatForServings(double servings) =>
+      ((fatPer100g / 100) * defaultServingGrams * servings);
 }
 
 class Ingredient {
   final Food food;
-  double grams;
+  double servings; // number of servings (e.g. 2 = 2 servings)
 
   Ingredient({
     required this.food,
-    required this.grams,
+    required this.servings,
   });
 
   String get name => food.name;
 
-  int get calories => food.caloriesFor(grams);
-  int get protein => food.proteinFor(grams);
-  int get carbs => food.carbsFor(grams);
-  int get fat => food.fatFor(grams);
+  double get grams => food.defaultServingGrams * servings;
+
+  int get calories => food.caloriesForServings(servings);
+  int get protein => food.proteinForServings(servings).round();
+  int get carbs => food.carbsForServings(servings).round();
+  int get fat => food.fatForServings(servings).round();
 }
 
 class Meal {

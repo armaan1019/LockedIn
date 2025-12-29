@@ -11,7 +11,18 @@ class AddIngredientPage extends StatefulWidget {
 }
 
 class _AddIngredientPageState extends State<AddIngredientPage> {
-  double grams = 100;
+  final _servingsController = TextEditingController(text: '1');
+
+  double get servings {
+    final v = double.tryParse(_servingsController.text);
+    return (v != null && v > 0) ? v : 1;
+  }
+
+  @override
+  void dispose() {
+    _servingsController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -24,25 +35,29 @@ class _AddIngredientPageState extends State<AddIngredientPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Serving Size (grams)', style: Theme.of(context).textTheme.titleMedium),
-
-            Slider(
-              min: 1,
-              max: 500,
-              divisions: 499,
-              value: grams,
-              label: grams.round().toString(),
-              onChanged: (v) => setState(() => grams = v),
+            Text(
+              'Number of servings',
+              style: Theme.of(context).textTheme.titleMedium,
             ),
 
-            Text('${grams.round()} g'),
+            const SizedBox(height: 8),
+
+            TextField(
+              controller: _servingsController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                hintText: 'e.g. 2',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) => setState(() {}),
+            ),
 
             const SizedBox(height: 16),
 
-            Text('Calories: ${food.caloriesFor(grams)}'),
-            Text('Protein: ${food.proteinFor(grams)} g'),
-            Text('Carbs: ${food.carbsFor(grams)} g'),
-            Text('Fat: ${food.fatFor(grams)} g'),
+            Text('Calories: ${food.caloriesForServings(servings)}'),
+            Text('Protein: ${food.proteinForServings(servings).toStringAsFixed(1)} g'),
+            Text('Carbs: ${food.carbsForServings(servings).toStringAsFixed(1)} g'),
+            Text('Fat: ${food.fatForServings(servings).toStringAsFixed(1)} g'),
 
             const Spacer(),
 
@@ -50,7 +65,10 @@ class _AddIngredientPageState extends State<AddIngredientPage> {
               onPressed: () {
                 Navigator.pop(
                   context,
-                  Ingredient(food: food, grams: grams),
+                  Ingredient(
+                    food: food,
+                    servings: servings,
+                  ),
                 );
               },
               child: const Text('Add Ingredient'),
