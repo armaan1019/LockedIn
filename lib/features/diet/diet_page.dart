@@ -3,6 +3,7 @@ import 'services/food_api.dart';
 import 'models/food.dart';
 import 'barcode_scanner_page.dart';
 import 'food_search_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
@@ -13,6 +14,13 @@ class DietPage extends StatefulWidget {
 
 class _DietPageState extends State<DietPage> {
   final List<Meal> _meals = [];
+  final List<Meal> _savedMeals = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _checkAndResetIfNewDay();
+  }
 
   int get totalProtein =>
     _meals.fold(0, (sum, meal) => sum + meal.protein);
@@ -28,6 +36,52 @@ class _DietPageState extends State<DietPage> {
       food: food,
       servings: 1.0,
     );
+  }
+
+  void _deleteMeal(int index) {
+    setState(() {
+      _meals.removeAt(index);
+    });
+  }
+
+  void _editMeal(int index, Meal updatedMeal) {
+    setState(() {
+      _meals[index] = updatedMeal;
+    });
+  }
+
+  void _openEditSheet(int index, Meal meal) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
+        child: CreateMealForm(
+          onSave: (updatedMeal) {
+            _editMeal(index, updatedMeal);
+          },
+          initialMeal: meal,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _checkAndResetIfNewDay() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final lastDate = prefs.getString('lastDietDate');
+    final today = DateTime.now();
+    final todayKey = '${today.year}-${today.month}-${today.day}';
+
+    if (lastDate != todayKey) {
+      setState(() {
+        _meals.clear();
+      });
+
+      await prefs.setString('lastDietDate', todayKey);
+    }
   }
 
   Future<void> _scanBarcodeAndAddMeal() async {
@@ -163,7 +217,12 @@ class _DietPageState extends State<DietPage> {
                   itemCount: _meals.length,
                   itemBuilder: (context, index) {
                     final meal = _meals[index];
-                    return MealCard(meal: meal);
+                    return MealCard(
+                      meal: meal,
+                      index: index,
+                      onDelete: _deleteMeal,
+                      onEdit: (i, m) => _openEditSheet(i, m),
+                    );
                   },
                 ),
               ),
@@ -181,8 +240,17 @@ class _DietPageState extends State<DietPage> {
 
 class MealCard extends StatelessWidget {
   final Meal meal;
+  final int index;
+  final void Function(int) onDelete;
+  final void Function(int, Meal) onEdit;
 
-  const MealCard({super.key, required this.meal});
+  const MealCard({
+    super.key,
+    required this.meal,
+    required this.index,
+    required this.onDelete,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +262,46 @@ class MealCard extends StatelessWidget {
         subtitle: Text(
           meal.ingredients.map((i) => i.name).join(', '),
         ),
-        trailing: Text('${meal.calories} cal'),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('${meal.calories} cal'),
+
+            IconButton(
+              icon: const Icon(Icons.edit),
+              onPressed: () {
+                onEdit(index, meal);
+              },
+            ),
+
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Delete meal?'),
+                    content: Text('Delete ${meal.name}?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Delete'),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  onDelete(index);
+                }
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -221,11 +328,13 @@ class _MacroInfo extends StatelessWidget {
 class CreateMealForm extends StatefulWidget {
   final void Function(Meal) onSave;
   final Ingredient? initialIngredient;
+  final Meal? initialMeal;
 
   const CreateMealForm({
     super.key,
     required this.onSave,
     this.initialIngredient,
+    this.initialMeal,
   });
 
   @override
@@ -239,7 +348,12 @@ class _CreateMealFormState extends State<CreateMealForm> {
   @override
   void initState() {
     super.initState();
-    if (widget.initialIngredient != null) {
+
+    if (widget.initialMeal != null) {
+      _mealNameController.text = widget.initialMeal!.name;
+      _ingredients.addAll(widget.initialMeal!.ingredients);
+    } 
+    else if (widget.initialIngredient != null) {
       _ingredients.add(widget.initialIngredient!);
     }
   }

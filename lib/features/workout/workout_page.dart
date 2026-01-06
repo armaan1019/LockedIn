@@ -9,25 +9,7 @@ class WorkoutPage extends StatefulWidget {
 }
 
 class _WorkoutPageState extends State<WorkoutPage> {
-  final List<Workout> _workouts = [
-  Workout(
-    title: 'Upper Body Strength',
-    exercises: [
-      Exercise(name: 'Bench Press', sets: 3, reps: 10),
-      Exercise(name: 'Shoulder Press', sets: 3, reps: 12),
-    ],
-    duration: 45,
-    calories: 300,
-  ),
-  Workout(
-    title: 'Morning Run',
-    exercises: [
-      Exercise(name: 'Jog', sets: 1, reps: 30),
-    ],
-    duration: 30,
-    calories: 250,
-  ),
-];
+  final List<Workout> _workouts = [];
 
   final List<WorkoutSession> _history = [];
 
