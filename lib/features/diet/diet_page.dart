@@ -4,6 +4,7 @@ import 'models/food.dart';
 import 'barcode_scanner_page.dart';
 import 'food_search_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'saved_meals_page.dart';
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
@@ -35,6 +36,16 @@ class _DietPageState extends State<DietPage> {
     return Ingredient(
       food: food,
       servings: 1.0,
+    );
+  }
+
+  void _saveMealTemplate(Meal meal) {
+    setState(() {
+      _savedMeals.add(meal);
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('${meal.name} saved for future use')),
     );
   }
 
@@ -115,6 +126,7 @@ class _DietPageState extends State<DietPage> {
         ),
         child: CreateMealForm(
           onSave: _addMeal,
+          onSaveTemplate: _saveMealTemplate,
           initialIngredient: _ingredientFromFood(food),
         ),
       ),
@@ -138,6 +150,7 @@ class _DietPageState extends State<DietPage> {
         ),
         child: CreateMealForm(
           onSave: _addMeal,
+          onSaveTemplate: _saveMealTemplate,
         ),
       ),
     );
@@ -165,6 +178,26 @@ class _DietPageState extends State<DietPage> {
                 onTap: () {
                   Navigator.pop(context);
                   _scanBarcodeAndAddMeal();
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.bookmark),
+                title: const Text('Use saved meal'),
+                onTap: () async {
+                  Navigator.pop(context);
+
+                  final meal = await Navigator.push<Meal>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SavedMealsPage(savedMeals: _savedMeals),
+                    ),
+                  );
+
+                  if (meal != null) {
+                    setState(() {
+                      _meals.add(meal);
+                    });
+                  }
                 },
               ),
             ],
@@ -327,12 +360,14 @@ class _MacroInfo extends StatelessWidget {
 
 class CreateMealForm extends StatefulWidget {
   final void Function(Meal) onSave;
+  final void Function(Meal)? onSaveTemplate;
   final Ingredient? initialIngredient;
   final Meal? initialMeal;
 
   const CreateMealForm({
     super.key,
     required this.onSave,
+    this.onSaveTemplate,
     this.initialIngredient,
     this.initialMeal,
   });
@@ -503,9 +538,35 @@ class _CreateMealFormState extends State<CreateMealForm> {
           ),
           const SizedBox(height: 12),
 
-          ElevatedButton(
-            onPressed: _saveMeal,
-            child: const Text('Save Meal'),
+          Row(
+            children: [
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _saveMeal,
+                  child: const Text('Add to Today'),
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (widget.onSaveTemplate == null) return;
+                    if (_mealNameController.text.isEmpty || _ingredients.isEmpty) return;
+
+                    final meal = Meal(
+                      name: _mealNameController.text,
+                      ingredients: _ingredients,
+                    );
+
+                    widget.onSaveTemplate!(meal);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Save Template'),
+                ),
+              ),
+            ],
           ),
         ],
       ),
