@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'workout_tracker_page.dart';
+import 'models/workout.dart';
 
 class WorkoutPage extends StatefulWidget {
   const WorkoutPage({super.key});
@@ -183,7 +184,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
 class AddWorkoutForm extends StatefulWidget {
   final void Function(Workout) onSave;
-  final Workout? existingWorkout; // 🔹 new
+  final Workout? existingWorkout; 
 
   const AddWorkoutForm({super.key, required this.onSave, this.existingWorkout});
 
@@ -230,6 +231,7 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
           .toList();
 
       final workout = Workout(
+        id: widget.existingWorkout?.id,
         title: _titleController.text,
         exercises: exercises,
         duration: exercises.length * 10,
@@ -310,8 +312,8 @@ class WorkoutCard extends StatelessWidget {
   final Workout workout;
   final VoidCallback onStart;
   final VoidCallback onPastWorkouts;
-  final void Function(Workout)? onEdit; // 🔹 new
-  final VoidCallback? onDelete; // 🔹 new
+  final void Function(Workout)? onEdit; 
+  final VoidCallback? onDelete; 
 
   const WorkoutCard({
     super.key,

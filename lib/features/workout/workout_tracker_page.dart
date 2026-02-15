@@ -1,55 +1,6 @@
 import 'package:flutter/material.dart';
 import 'workout_summary_page.dart';
-
-class WorkoutSession {
-  final String id;
-  final String title;
-  final List<ExerciseSession> exercises;
-  final DateTime date;
-
-  WorkoutSession({
-    required this.id,
-    required this.title,
-    required this.exercises,
-    required this.date,
-  });
-}
-
-class ExerciseSession {
-  final String name;
-  final List<SetEntry> sets;
-
-  ExerciseSession({required this.name, required this.sets});
-}
-
-class SetEntry {
-  int reps;
-  double? weight; // optional
-
-  SetEntry({required this.reps, this.weight});
-}
-
-class Workout {
-  final String title;
-  final List<Exercise> exercises;
-  final int duration;
-  final int calories;
-
-  Workout({
-    required this.title,
-    required this.exercises,
-    required this.duration,
-    required this.calories,
-  });
-}
-
-class Exercise {
-  final String name;
-  final int sets;
-  final int reps;
-
-  Exercise({required this.name, required this.sets, required this.reps});
-}
+import 'models/workout.dart';
 
 class WorkoutTrackerPage extends StatefulWidget {
   final Workout workout;
