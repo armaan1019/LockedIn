@@ -4,6 +4,7 @@ import 'models/workout.dart';
 import 'widgets/add_workout_form.dart';
 import 'widgets/workout_card.dart';
 import '../../core/local_db.dart';
+import 'widgets/past_workout_sheet.dart';
 
 class WorkoutPage extends StatefulWidget {
   const WorkoutPage({super.key});
@@ -73,57 +74,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      builder: (context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.7,
-          child: pastSessions.isEmpty
-              ? const Center(child: Text('No past workouts yet.'))
-              : ListView.builder(
-                  itemCount: pastSessions.length,
-                  itemBuilder: (context, index) {
-                    final session = pastSessions[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 6),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Date: ${session.date.toLocal().toString().split(' ')[0]}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            ...session.exercises.map(
-                              (e) => Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    e.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                  ...e.sets.asMap().entries.map((entry) {
-                                    final i = entry.key;
-                                    final set = entry.value;
-                                    return Text(
-                                      'Set ${i + 1}: ${set.reps} reps${set.weight != null ? ' (${set.weight} lbs)' : ''}',
-                                    );
-                                  }),
-                                  const SizedBox(height: 6),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-        ),
+      builder: (_) => SizedBox(
+        height: MediaQuery.of(context).size.height * 0.7,
+        child: PastWorkoutsSheet(sessions: pastSessions),
       ),
     );
   }
