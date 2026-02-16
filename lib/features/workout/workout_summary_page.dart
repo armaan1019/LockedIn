@@ -93,7 +93,7 @@ class WorkoutSummaryPage extends StatelessWidget {
             Expanded(
               child: ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context, session); // 🔑 return session
+                  Navigator.pop(context, session); 
                 },
                 child: const Text('Done'),
               ),
