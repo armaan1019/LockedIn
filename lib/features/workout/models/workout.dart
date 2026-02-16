@@ -1,17 +1,58 @@
 import 'dart:convert';
 
 class WorkoutSession {
-  final String id;
+  final int? id;
   final String title;
   final List<ExerciseSession> exercises;
   final DateTime date;
 
   WorkoutSession({
-    required this.id,
+    this.id,
     required this.title,
     required this.exercises,
     required this.date,
   });
+
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'title': title,
+      'exercises': jsonEncode(exercises.map((e) => e.toMap()).toList()),
+      'date': date.millisecondsSinceEpoch,
+    };
+  }
+
+  WorkoutSession copyWith({int? id}) {
+    return WorkoutSession(
+      id: id ?? this.id,
+      title: title,
+      exercises: exercises,
+      date: date,
+    );
+  }
+
+  factory WorkoutSession.fromMap(Map<String, Object?> map) {
+    final exerciseList = jsonDecode(map['exercises'] as String) as List;
+
+    return WorkoutSession(
+      id: map['id'] as int,
+      title: map['title'] as String,
+      date: DateTime.fromMillisecondsSinceEpoch(map['date'] as int),
+      exercises: exerciseList.map((e) {
+        final setsList = e['sets'] as List;
+
+        return ExerciseSession(
+          name: e['name'],
+          sets: setsList.map((s) {
+            return SetEntry(
+              reps: s['reps'],
+              weight: s['weight']?.toDouble(),
+            );
+          }).toList(),
+        );
+      }).toList(),
+    );
+  }
 }
 
 class ExerciseSession {
@@ -19,6 +60,13 @@ class ExerciseSession {
   final List<SetEntry> sets;
 
   ExerciseSession({required this.name, required this.sets});
+
+  Map<String, Object?> toMap() {
+    return {
+      'name': name,
+      'sets': sets.map((s) => {'reps': s.reps, 'weight': s.weight}).toList(),
+    };
+  }
 }
 
 class SetEntry {
@@ -62,6 +110,22 @@ class Workout {
       exercises: exerciseList.map((e) => Exercise.fromMap(e)).toList(),
       duration: map['duration'] as int,
       calories: map['calories'] as int,
+    );
+  }
+
+  Workout copyWith({
+    int? id,
+    String? title,
+    List<Exercise>? exercises,
+    int? duration,
+    int? calories,
+  }) {
+    return Workout(
+      id: id ?? this.id,
+      title: title ?? this.title,
+      exercises: exercises ?? this.exercises,
+      duration: duration ?? this.duration,
+      calories: calories ?? this.calories,
     );
   }
 }

@@ -3,6 +3,7 @@ import 'workout_tracker_page.dart';
 import 'models/workout.dart';
 import 'widgets/add_workout_form.dart';
 import 'widgets/workout_card.dart';
+import '../../core/local_db.dart';
 
 class WorkoutPage extends StatefulWidget {
   const WorkoutPage({super.key});
@@ -15,6 +16,21 @@ class _WorkoutPageState extends State<WorkoutPage> {
   final List<Workout> _workouts = [];
 
   final List<WorkoutSession> _history = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadWorkouts();
+  }
+
+  Future<void> _loadWorkouts() async {
+    final rows = await LocalDb.instance.getWorkouts();
+    final loaded = rows.map((map) => Workout.fromMap(map)).toList();
+    setState(() {
+      _workouts.clear();
+      _workouts.addAll(loaded);
+    });
+  }
 
   void _startWorkout(Workout workout) async {
     final result = await Navigator.push(
@@ -43,57 +59,64 @@ class _WorkoutPageState extends State<WorkoutPage> {
       context: context,
       isScrollControlled: true,
       builder: (context) => Padding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: AddWorkoutForm(onSave: _addWorkout),
       ),
     );
   }
 
-  void _showPastWorkouts(Workout workout) {
-  final pastSessions = _history
-      .where((s) => s.title == workout.title)
-      .toList();
+  void _showPastWorkouts(Workout workout) async {
+    final pastSessions = await LocalDb.instance.getWorkoutSessionsByTitle(workout.title);
 
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    builder: (context) => Padding(
-      padding: const EdgeInsets.all(16),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.7,
-        child: pastSessions.isEmpty
-            ? const Center(child: Text('No past workouts yet.'))
-            : ListView.builder(
-                itemCount: pastSessions.length,
-                itemBuilder: (context, index) {
-                  final session = pastSessions[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 6),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Date: ${session.date.toLocal().toString().split(' ')[0]}',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          ...session.exercises.map((e) => Column(
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(16),
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: pastSessions.isEmpty
+              ? const Center(child: Text('No past workouts yet.'))
+              : ListView.builder(
+                  itemCount: pastSessions.length,
+                  itemBuilder: (context, index) {
+                    final session = pastSessions[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Date: ${session.date.toLocal().toString().split(' ')[0]}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            ...session.exercises.map(
+                              (e) => Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(e.name,
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.w600)),
+                                  Text(
+                                    e.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
                                   ...e.sets.asMap().entries.map((entry) {
                                     final i = entry.key;
                                     final set = entry.value;
                                     return Text(
-                                        'Set ${i + 1}: ${set.reps} reps${set.weight != null ? ' (${set.weight} lbs)' : ''}');
+                                      'Set ${i + 1}: ${set.reps} reps${set.weight != null ? ' (${set.weight} lbs)' : ''}',
+                                    );
                                   }),
                                   const SizedBox(height: 6),
                                 ],
-                              )),
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -104,7 +127,6 @@ class _WorkoutPageState extends State<WorkoutPage> {
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -134,7 +156,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           context: context,
                           isScrollControlled: true,
                           builder: (context) => Padding(
-                            padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+                            padding: EdgeInsets.only(
+                              bottom: MediaQuery.of(context).viewInsets.bottom,
+                            ),
                             child: AddWorkoutForm(
                               existingWorkout: workoutToEdit,
                               onSave: (updatedWorkout) {
@@ -152,9 +176,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           context: context,
                           builder: (_) => AlertDialog(
                             title: const Text('Delete Workout'),
-                            content: const Text('Are you sure you want to delete this workout?'),
+                            content: const Text(
+                              'Are you sure you want to delete this workout?',
+                            ),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('Cancel'),
+                              ),
                               ElevatedButton(
                                 onPressed: () {
                                   setState(() {
@@ -171,7 +200,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                     );
                   },
                 ),
-              )
+              ),
             ],
           ),
         ),
@@ -183,5 +212,3 @@ class _WorkoutPageState extends State<WorkoutPage> {
     );
   }
 }
-
-

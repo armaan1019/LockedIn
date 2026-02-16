@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
 import 'exercise_input.dart';
+import '../../../core/local_db.dart';
 
 class AddWorkoutForm extends StatefulWidget {
   final void Function(Workout) onSave;
@@ -40,7 +41,7 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
   void _addExerciseField() => setState(() => _exerciseInputs.add(ExerciseInput()));
   void _removeExerciseField(int index) => setState(() => _exerciseInputs.removeAt(index));
 
-  void _save() {
+  void _save() async {
     if (_formKey.currentState!.validate()) {
       final exercises = _exerciseInputs
           .map((input) => Exercise(
@@ -58,7 +59,14 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
         calories: exercises.length * 50,
       );
 
-      widget.onSave(workout);
+      if(workout.id != null) {
+        await LocalDb.instance.updateWorkout(workout.toMap());
+        widget.onSave(workout);
+      } else {
+        final id = await LocalDb.instance.insertWorkout(workout.toMap());
+        final savedWorkout = workout.copyWith(id: id);
+        widget.onSave(savedWorkout);
+      }
     }
   }
 

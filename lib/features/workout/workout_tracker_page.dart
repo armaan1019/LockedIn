@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'workout_summary_page.dart';
 import 'models/workout.dart';
+import '../../core/local_db.dart';
 
 class WorkoutTrackerPage extends StatefulWidget {
   final Workout workout;
@@ -114,7 +115,6 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
 
   Future<void> _finishWorkout() async {
     final session = WorkoutSession(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
       title: widget.workout.title,
       date: DateTime.now(),
       exercises: exerciseSessions,
@@ -128,7 +128,9 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
 
     // Only send session back to parent if user confirms
     if (result != null) {
-      Navigator.pop(context, result); // Pass completed session back
+      final id = await LocalDb.instance.insertWorkoutSession(session.toMap());
+      final savedSession = session.copyWith(id: id);
+      Navigator.pop(context, savedSession); // Pass completed session back
     }
   }
 
