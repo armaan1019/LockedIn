@@ -1,4 +1,5 @@
 class Food {
+  final int? id;
   final String name;
   final int caloriesPer100g;
   final int proteinPer100g;
@@ -7,6 +8,7 @@ class Food {
   final double defaultServingGrams; // e.g., 28g for 1 slice of bacon
 
   Food({
+    this.id,
     required this.name,
     required this.caloriesPer100g,
     required this.proteinPer100g,
@@ -33,10 +35,7 @@ class Ingredient {
   final Food food;
   double servings; // number of servings (e.g. 2 = 2 servings)
 
-  Ingredient({
-    required this.food,
-    required this.servings,
-  });
+  Ingredient({required this.food, required this.servings});
 
   String get name => food.name;
 
@@ -52,21 +51,13 @@ class Meal {
   final String name;
   final List<Ingredient> ingredients;
 
-  Meal({
-    required this.name,
-    required this.ingredients,
-  });
+  Meal({required this.name, required this.ingredients});
 
-  int get calories =>
-      ingredients.fold(0, (sum, i) => sum + i.calories);
+  int get calories => ingredients.fold(0, (sum, i) => sum + i.calories);
 
-  int get protein =>
-      ingredients.fold(0, (sum, i) => sum + i.protein);
+  int get protein => ingredients.fold(0, (sum, i) => sum + i.protein);
 
-  int get carbs =>
-      ingredients.fold(0, (sum, i) => sum + i.carbs);
+  int get carbs => ingredients.fold(0, (sum, i) => sum + i.carbs);
 
-  int get fat =>
-      ingredients.fold(0, (sum, i) => sum + i.fat);
+  int get fat => ingredients.fold(0, (sum, i) => sum + i.fat);
 }
-

@@ -19,7 +19,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -43,6 +43,9 @@ class LocalDb {
     if (oldVersion < 2) {
       await _createWorkoutSessionsTable(db);
     }
+    if(oldVersion < 3) {
+      await _createDietTable(db);
+    }
   }
 
   // =========================
@@ -52,6 +55,21 @@ class LocalDb {
   static Future<void> _createTables(Database db) async {
     await _createWorkoutsTable(db);
     await _createWorkoutSessionsTable(db);
+    await _createDietTable(db);
+  }
+
+  static Future<void> _createDietTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE diet (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        calories INTEGER NOT NULL,
+        protein INTEGER NOT NULL,
+        carbs INTEGER NOT NULL,
+        fat INTEGER NOT NULL,
+        defaultServingGrams INTEGER NOT NULL
+      )
+    ''');
   }
 
   static Future<void> _createWorkoutsTable(Database db) async {
