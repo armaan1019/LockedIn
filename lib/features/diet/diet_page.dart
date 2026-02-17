@@ -7,6 +7,7 @@ import 'saved_meals_page.dart';
 import 'widgets/meal_card.dart';
 import 'widgets/macro_info.dart';
 import 'widgets/create_meal_form.dart';
+import '../../core/local_db.dart';
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
@@ -22,29 +23,128 @@ class _DietPageState extends State<DietPage> {
   @override
   void initState() {
     super.initState();
-    _checkAndResetIfNewDay();
+    _initPage();
   }
 
-  int get totalProtein =>
-    _meals.fold(0, (sum, meal) => sum + meal.protein);
+  Future<void> _initPage() async {
+    await _checkAndResetIfNewDay();
+    await _loadTodayMeals();
+    await _loadSavedMeals();
+  }
 
-  int get totalCarbs =>
-      _meals.fold(0, (sum, meal) => sum + meal.carbs);
+  int get totalProtein => _meals.fold(0, (sum, meal) => sum + meal.protein);
 
-  int get totalFat =>
-      _meals.fold(0, (sum, meal) => sum + meal.fat);
+  int get totalCarbs => _meals.fold(0, (sum, meal) => sum + meal.carbs);
+
+  int get totalFat => _meals.fold(0, (sum, meal) => sum + meal.fat);
 
   Ingredient _ingredientFromFood(Food food) {
-    return Ingredient(
-      food: food,
-      servings: 1.0,
-    );
+    return Ingredient(food: food, servings: 1.0);
   }
 
-  void _saveMealTemplate(Meal meal) {
+  Future<void> _loadSavedMeals() async {
+    final db = LocalDb.instance;
+
+    final meals = await db.getMeals();
+
+    List<Meal> loaded = [];
+
+    for (final meal in meals) {
+      final mealId = meal['id'] as int;
+
+      final ingredientMaps = await db.getIngredientsForMeal(mealId);
+      List<Ingredient> ingredients = [];
+
+      for (final ing in ingredientMaps) {
+        ingredients.add(
+          Ingredient(
+            food: Food(
+              id: ing['food_id'] as int,
+              name: ing['name'] as String,
+              caloriesPer100g: ing['calories'] as int,
+              proteinPer100g: ing['protein'] as int,
+              carbsPer100g: ing['carbs'] as int,
+              fatPer100g: ing['fat'] as int,
+            ),
+            servings: ing['servings'] as double,
+          ),
+        );
+      }
+      loaded.add(
+        Meal(
+          id: mealId,
+          name: meal['name'] as String,
+          ingredients: ingredients,
+        ),
+      );
+    }
+
     setState(() {
-      _savedMeals.add(meal);
+      _savedMeals
+        ..clear()
+        ..addAll(loaded);
     });
+  }
+
+  Future<void> _loadTodayMeals() async {
+    final db = LocalDb.instance;
+
+    final today = DateTime.now();
+    final dateKey = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).millisecondsSinceEpoch;
+
+    final entries = await db.getDietEntriesByDate(dateKey);
+
+    List<Meal> loadedMeals = [];
+
+    for (final entry in entries) {
+      final mealId = entry['meal_id'] as int;
+
+      final mealMap = await db.getMealById(mealId);
+      if (mealMap == null) continue; // skip if meal was deleted
+
+      final ingredientMaps = await db.getIngredientsForMeal(mealId);
+
+      List<Ingredient> ingredients = [];
+
+      for (final ing in ingredientMaps) {
+        final foodMap = await db.getFoodById(ing['food_id'] as int);
+        if (foodMap == null) continue; // skip missing food
+
+        ingredients.add(
+          Ingredient(
+            food: Food.fromMap(foodMap),
+            servings: ing['servings'] as double,
+          ),
+        );
+      }
+
+      loadedMeals.add(
+        Meal(name: mealMap['name'] as String, ingredients: ingredients),
+      );
+    }
+
+    setState(() {
+      _meals.clear();
+      _meals.addAll(loadedMeals);
+    });
+  }
+
+  void _saveMealTemplate(Meal meal) async {
+    final db = LocalDb.instance;
+
+    final mealId = await db.insertMeal({'name': meal.name});
+
+    for (final ing in meal.ingredients) {
+      await db.insertIngredient({
+        'meal_id': mealId,
+        'food_id': ing.food.id,
+        'servings': ing.servings,
+      });
+    }
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('${meal.name} saved for future use')),
@@ -101,9 +201,7 @@ class _DietPageState extends State<DietPage> {
     // Navigate to barcode scanner and wait for result
     final barcode = await Navigator.push<String>(
       context,
-      MaterialPageRoute(
-        builder: (_) => const BarcodeScannerPage(),
-      ),
+      MaterialPageRoute(builder: (_) => const BarcodeScannerPage()),
     );
 
     if (barcode == null) return;
@@ -112,9 +210,9 @@ class _DietPageState extends State<DietPage> {
     final food = await FoodApi.fetchByBarcode(barcode);
 
     if (food == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Food not found')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Food not found')));
       return;
     }
 
@@ -135,11 +233,37 @@ class _DietPageState extends State<DietPage> {
     );
   }
 
+  void _addMeal(Meal meal) async {
+    final db = LocalDb.instance;
 
-  void _addMeal(Meal meal) {
-    setState(() {
-      _meals.add(meal);
-    });
+    final mealId = await db.insertMeal({'name': meal.name});
+
+    for (final ing in meal.ingredients) {
+
+      int foodId;
+
+      // SAFE CHECK
+      if (ing.food.id == null) {
+        foodId = await db.insertFood(ing.food.toMap());
+        ing.food.id = foodId;
+      } else {
+        foodId = ing.food.id!;
+      }
+
+      await db.insertIngredient({
+        'meal_id': mealId,
+        'food_id': foodId,
+        'servings': ing.servings,
+      });
+    }
+
+    final today = DateTime.now();
+    final dateKey =
+        DateTime(today.year, today.month, today.day).millisecondsSinceEpoch;
+
+    await db.insertDietEntry({'meal_id': mealId, 'date': dateKey});
+
+    await _loadTodayMeals();
   }
 
   void _showCreateMealSheet() {
@@ -233,7 +357,10 @@ class _DietPageState extends State<DietPage> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
-                      MacroInfo(label: 'Calories', value: totalCalories.toString()),
+                      MacroInfo(
+                        label: 'Calories',
+                        value: totalCalories.toString(),
+                      ),
                       MacroInfo(label: 'Protein', value: '${totalProtein}g'),
                       MacroInfo(label: 'Carbs', value: '${totalCarbs}g'),
                       MacroInfo(label: 'Fat', value: '${totalFat}g'),

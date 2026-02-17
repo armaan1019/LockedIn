@@ -1,5 +1,5 @@
 class Food {
-  final int? id;
+  int? id;
   final String name;
   final int caloriesPer100g;
   final int proteinPer100g;
@@ -17,6 +17,30 @@ class Food {
     this.defaultServingGrams = 100.0,
   });
 
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      'calories': caloriesPer100g,
+      'protein': proteinPer100g,
+      'carbs': carbsPer100g,
+      'fat': fatPer100g,
+      'defaultServingGrams': defaultServingGrams
+    };
+  }
+
+  factory Food.fromMap(Map<String, Object?> map) {
+    return Food(
+      id: map['id'] as int?,
+      name: map['name'] as String,
+      caloriesPer100g: map['calories'] as int,
+      proteinPer100g: map['protein'] as int,
+      carbsPer100g: map['carbs'] as int,
+      fatPer100g: map['fat'] as int,
+      defaultServingGrams: (map['defaultServingGrams'] as num).toDouble()
+    );
+  }
+
   // Calculate nutrition for a given serving count
   int caloriesForServings(double servings) =>
       ((caloriesPer100g / 100) * defaultServingGrams * servings).round();
@@ -32,10 +56,31 @@ class Food {
 }
 
 class Ingredient {
+  final int? id;
   final Food food;
   double servings; // number of servings (e.g. 2 = 2 servings)
 
-  Ingredient({required this.food, required this.servings});
+  Ingredient({
+    this.id,
+    required this.food, 
+    required this.servings
+  });
+
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'foodId': food.id,
+      'servings': servings,
+    };
+  }
+
+  factory Ingredient.fromMap(Map<String, Object?> map, Food food) {
+    return Ingredient(
+      id: map['id'] as int?,
+      food: food,
+      servings: (map['servings'] as num).toDouble(),
+    );
+  }
 
   String get name => food.name;
 
@@ -48,10 +93,31 @@ class Ingredient {
 }
 
 class Meal {
+  final int? id;
   final String name;
   final List<Ingredient> ingredients;
 
-  Meal({required this.name, required this.ingredients});
+  Meal({
+    this.id,
+    required this.name, 
+    required this.ingredients
+  });
+
+  Map<String, Object?> toMap() {
+    return {
+      'id': id,
+      'name': name,
+      // Ingredients would be stored in a separate table with a mealId foreign key
+    };
+  }
+
+  factory Meal.fromMap(Map<String, Object?> map, List<Ingredient> ingredients) {
+    return Meal(
+      id: map['id'] as int?,
+      name: map['name'] as String,
+      ingredients: ingredients,
+    );
+  }
 
   int get calories => ingredients.fold(0, (sum, i) => sum + i.calories);
 

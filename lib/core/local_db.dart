@@ -19,7 +19,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -43,8 +43,15 @@ class LocalDb {
     if (oldVersion < 2) {
       await _createWorkoutSessionsTable(db);
     }
-    if(oldVersion < 3) {
-      await _createDietTable(db);
+    if (oldVersion < 3) {
+      await _createDietEntriesTable(db);
+      await _createFoodTable(db);
+      await _createMealsTable(db);
+      await _createIngredientsTable(db);
+    }
+    if (oldVersion < 4) {
+      await db.execute('DROP TABLE IF EXISTS diet_entries');
+      await _createDietEntriesTable(db);
     }
   }
 
@@ -55,19 +62,55 @@ class LocalDb {
   static Future<void> _createTables(Database db) async {
     await _createWorkoutsTable(db);
     await _createWorkoutSessionsTable(db);
-    await _createDietTable(db);
+    await _createDietEntriesTable(db);
+    await _createFoodTable(db);
+    await _createMealsTable(db);
+    await _createIngredientsTable(db);
   }
 
-  static Future<void> _createDietTable(Database db) async {
+  static Future<void> _createDietEntriesTable(Database db) async {
     await db.execute('''
-      CREATE TABLE diet (
+      CREATE TABLE diet_entries (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meal_id INTEGER NOT NULL,
+        date INTEGER NOT NULL,
+        FOREIGN KEY (meal_id) REFERENCES meals (id)
+      )
+    ''');
+  }
+
+  static Future<void> _createFoodTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE food (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
-        calories INTEGER NOT NULL,
-        protein INTEGER NOT NULL,
-        carbs INTEGER NOT NULL,
-        fat INTEGER NOT NULL,
-        defaultServingGrams INTEGER NOT NULL
+        calories INTEGER,
+        protein INTEGER,
+        carbs INTEGER,
+        fat INTEGER,
+        defaultServingGrams REAL
+      )
+    ''');
+  }
+
+  static Future<void> _createMealsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE meals (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL
+      )
+    ''');
+  }
+
+  static Future<void> _createIngredientsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE ingredients (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        meal_id INTEGER NOT NULL,
+        food_id INTEGER NOT NULL,
+        servings REAL NOT NULL,
+        FOREIGN KEY (meal_id) REFERENCES meals (id),
+        FOREIGN KEY (food_id) REFERENCES food (id)
       )
     ''');
   }
@@ -95,9 +138,7 @@ class LocalDb {
     ''');
   }
 
-  // =========================
   // CRUD: Workouts
-  // =========================
 
   Future<int> insertWorkout(Map<String, Object?> row) async {
     final database = await db;
@@ -148,5 +189,111 @@ class LocalDb {
       where: 'id = ?',
       whereArgs: [id],
     );
+  }
+
+  //CRUD for Diet Entries, Food, Meals, Ingredients
+
+  Future<int> insertFood(Map<String, Object?> row) async {
+    final database = await db;
+    return database.insert('food', row);
+  }
+
+  Future<List<Map<String, Object?>>> getFoods() async {
+    final database = await db;
+    return database.query('food', orderBy: 'id DESC');
+  }
+
+  Future<Map<String, Object?>?> getFoodById(int id) async {
+    final database = await db;
+    final rows = await database.query('food', where: 'id = ?', whereArgs: [id], limit: 1);
+    if (rows.isEmpty) return null;
+    return rows.first;
+  }
+
+  Future<int> updateFood(Map<String, Object?> row) async {
+    final database = await db;
+
+    final id = row['id'] as int;
+
+    return database.update('food', row, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> deleteFood(int id) async {
+    final database = await db;
+    return database.delete('food', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> insertMeal(Map<String, Object?> row) async {
+    final database = await db;
+    return database.insert('meals', row);
+  }
+
+  Future<List<Map<String, Object?>>> getMeals() async {
+    final database = await db;
+    return database.query('meals', orderBy: 'id DESC');
+  }
+
+  Future<Map<String, Object?>?> getMealById(int id) async {
+    final database = await db;
+    final rows = await database.query('meals', where: 'id = ?', whereArgs: [id], limit: 1);
+    if (rows.isEmpty) return null;
+    return rows.first;
+  }
+
+  Future<int> deleteMeal(int id) async {
+    final database = await db;
+    return database.delete('meals', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> updateMeal(Map<String, Object?> row) async {
+    final database = await db;
+
+    final id = row['id'] as int;
+
+    return database.update('meals', row, where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> insertIngredient(Map<String, Object?> row) async {
+    final database = await db;
+    return database.insert('ingredients', row);
+  }
+
+  Future<List<Map<String, Object?>>> getIngredientsForMeal(int mealId) async {
+    final database = await db;
+
+    return database.rawQuery(
+      '''
+      SELECT ingredients.*, food.name, food.calories, food.protein, food.carbs, food.fat
+      FROM ingredients
+      JOIN food ON ingredients.food_id = food.id
+      WHERE ingredients.meal_id = ?
+    ''',
+      [mealId],
+    );
+  }
+
+  Future<int> deleteIngredient(int id) async {
+    final database = await db;
+    return database.delete('ingredients', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<int> insertDietEntry(Map<String, Object?> row) async {
+    final database = await db;
+    return database.insert('diet_entries', row);
+  }
+
+  Future<List<Map<String, Object?>>> getDietEntriesByDate(int date) async {
+    final database = await db;
+    return database.query(
+      'diet_entries',
+      where: 'date = ?',
+      whereArgs: [date],
+      orderBy: 'id DESC',
+    );
+  }
+
+  Future<int> deleteDietEntry(int id) async {
+    final database = await db;
+    return database.delete('diet_entries', where: 'id = ?', whereArgs: [id]);
   }
 }
