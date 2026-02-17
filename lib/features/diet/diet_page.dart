@@ -40,6 +40,21 @@ class _DietPageState extends State<DietPage> {
     return Ingredient(food: food, servings: 1.0);
   }
 
+  Future<void> _logExistingMeal(Meal meal) async {
+    final db = LocalDb.instance;
+
+    final today = DateTime.now();
+    final dateKey = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).millisecondsSinceEpoch;
+
+    await db.insertDietEntry({'meal_id': meal.id, 'date': dateKey});
+
+    await _loadTodayMeals();
+  }
+
   Future<void> _loadSavedMeals() async {
     final db = LocalDb.instance;
 
@@ -137,12 +152,22 @@ class _DietPageState extends State<DietPage> {
     final mealId = await db.insertMeal({'name': meal.name});
 
     for (final ing in meal.ingredients) {
+      int foodId;
+
+      if (ing.food.id == null) {
+        foodId = await db.insertFood(ing.food.toMap());
+        ing.food.id = foodId;
+      } else {
+        foodId = ing.food.id!;
+      }
       await db.insertIngredient({
         'meal_id': mealId,
         'food_id': ing.food.id,
         'servings': ing.servings,
       });
     }
+
+    await _loadSavedMeals();
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('${meal.name} saved for future use')),
@@ -221,7 +246,6 @@ class _DietPageState extends State<DietPage> {
     final mealId = await db.insertMeal({'name': meal.name});
 
     for (final ing in meal.ingredients) {
-
       int foodId;
 
       // SAFE CHECK
@@ -240,8 +264,11 @@ class _DietPageState extends State<DietPage> {
     }
 
     final today = DateTime.now();
-    final dateKey =
-        DateTime(today.year, today.month, today.day).millisecondsSinceEpoch;
+    final dateKey = DateTime(
+      today.year,
+      today.month,
+      today.day,
+    ).millisecondsSinceEpoch;
 
     await db.insertDietEntry({'meal_id': mealId, 'date': dateKey});
 
@@ -302,9 +329,7 @@ class _DietPageState extends State<DietPage> {
                   );
 
                   if (meal != null) {
-                    setState(() {
-                      _meals.add(meal);
-                    });
+                    _logExistingMeal(meal);
                   }
                 },
               ),
