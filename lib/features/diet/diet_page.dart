@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'services/food_api.dart';
 import 'models/food.dart';
 import 'barcode_scanner_page.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'saved_meals_page.dart';
 import 'widgets/meal_card.dart';
 import 'widgets/macro_info.dart';
@@ -27,7 +26,6 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _initPage() async {
-    await _checkAndResetIfNewDay();
     await _loadTodayMeals();
     await _loadSavedMeals();
   }
@@ -179,22 +177,6 @@ class _DietPageState extends State<DietPage> {
         ),
       ),
     );
-  }
-
-  Future<void> _checkAndResetIfNewDay() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    final lastDate = prefs.getString('lastDietDate');
-    final today = DateTime.now();
-    final todayKey = '${today.year}-${today.month}-${today.day}';
-
-    if (lastDate != todayKey) {
-      setState(() {
-        _meals.clear();
-      });
-
-      await prefs.setString('lastDietDate', todayKey);
-    }
   }
 
   Future<void> _scanBarcodeAndAddMeal() async {
