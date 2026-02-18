@@ -19,7 +19,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -52,6 +52,11 @@ class LocalDb {
     if (oldVersion < 4) {
       await db.execute('DROP TABLE IF EXISTS diet_entries');
       await _createDietEntriesTable(db);
+    }
+    if (oldVersion < 5) {
+      await db.execute(
+        'ALTER TABLE meals ADD COLUMN is_template INTEGER DEFAULT 0',
+      );
     }
   }
 
@@ -228,8 +233,9 @@ class LocalDb {
     return database.delete('food', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<int> insertMeal(Map<String, Object?> row) async {
+  Future<int> insertMeal(Map<String, Object?> row, {bool isTemplate = false}) async {
     final database = await db;
+    row['is_template'] = isTemplate ? 1 : 0;
     return database.insert('meals', row);
   }
 
@@ -268,7 +274,11 @@ class LocalDb {
 
   Future<void> deleteIngredientsForMeal(int mealId) async {
     final database = await db;
-    await database.delete('ingredients', where: 'meal_id = ?', whereArgs: [mealId]);
+    await database.delete(
+      'ingredients',
+      where: 'meal_id = ?',
+      whereArgs: [mealId],
+    );
   }
 
   Future<List<Map<String, Object?>>> getIngredientsForMeal(int mealId) async {

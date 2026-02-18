@@ -40,7 +40,7 @@ class _DietPageState extends State<DietPage> {
     return Ingredient(food: food, servings: 1.0);
   }
 
-  Future<void> _logExistingMeal(Meal meal) async {
+  Future<void> _logExistingMeal(Meal template) async {
     final db = LocalDb.instance;
 
     final today = DateTime.now();
@@ -50,7 +50,24 @@ class _DietPageState extends State<DietPage> {
       today.day,
     ).millisecondsSinceEpoch;
 
-    await db.insertDietEntry({'meal_id': meal.mealId, 'date': dateKey});
+    final newMealId = await db.insertMeal({'name': template.name});
+
+    for (final ing in template.ingredients) {
+      int foodId;
+
+      if (ing.food.id == null) {
+        foodId = await db.insertFood(ing.food.toMap());
+      } else {
+        foodId = ing.food.id!;
+      }
+      await db.insertIngredient({
+        'meal_id': newMealId,
+        'food_id': foodId,
+        'servings': ing.servings,
+      });
+    }
+
+    await db.insertDietEntry({'meal_id': newMealId, 'date': dateKey});
 
     await _loadTodayMeals();
   }
@@ -58,7 +75,12 @@ class _DietPageState extends State<DietPage> {
   Future<void> _loadSavedMeals() async {
     final db = LocalDb.instance;
 
-    final meals = await db.getMeals();
+    final database = await db.db;
+    final meals = await database.query(
+      'meals',
+      where: 'is_template = 1',
+      orderBy: 'id DESC',
+    );
 
     List<Meal> loaded = [];
 
@@ -155,7 +177,7 @@ class _DietPageState extends State<DietPage> {
   void _saveMealTemplate(Meal meal) async {
     final db = LocalDb.instance;
 
-    final mealId = await db.insertMeal({'name': meal.name});
+    final mealId = await db.insertMeal({'name': meal.name}, isTemplate: true);
 
     for (final ing in meal.ingredients) {
       int foodId;
@@ -230,6 +252,7 @@ class _DietPageState extends State<DietPage> {
             await _editMeal(index, updatedMeal);
           },
           initialMeal: meal,
+          isEditing: true,
         ),
       ),
     );

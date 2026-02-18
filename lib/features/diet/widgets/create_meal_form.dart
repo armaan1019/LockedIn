@@ -4,12 +4,14 @@ import '../food_search_page.dart';
 import 'add_ingredient_form.dart';
 
 class CreateMealForm extends StatefulWidget {
+  final bool isEditing;
   final void Function(Meal) onSave;
   final void Function(Meal)? onSaveTemplate;
   final Ingredient? initialIngredient;
   final Meal? initialMeal;
 
   const CreateMealForm({
+    this.isEditing = false,
     super.key,
     required this.onSave,
     this.onSaveTemplate,
@@ -188,29 +190,29 @@ class _CreateMealFormState extends State<CreateMealForm> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: _saveMeal,
-                  child: const Text('Add to Today'),
+                  child: Text(widget.isEditing ? 'Save Changes' : 'Add to Today'),
                 ),
               ),
 
               const SizedBox(width: 8),
+              if (!widget.isEditing)
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      if (widget.onSaveTemplate == null) return;
+                      if (_mealNameController.text.isEmpty || _ingredients.isEmpty) return;
 
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: () {
-                    if (widget.onSaveTemplate == null) return;
-                    if (_mealNameController.text.isEmpty || _ingredients.isEmpty) return;
+                      final meal = Meal(
+                        name: _mealNameController.text,
+                        ingredients: _ingredients,
+                      );
 
-                    final meal = Meal(
-                      name: _mealNameController.text,
-                      ingredients: _ingredients,
-                    );
-
-                    widget.onSaveTemplate!(meal);
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Save Template'),
+                      widget.onSaveTemplate!(meal);
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Save Template'),
+                  ),
                 ),
-              ),
             ],
           ),
         ],
