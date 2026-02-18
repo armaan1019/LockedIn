@@ -205,7 +205,12 @@ class LocalDb {
 
   Future<Map<String, Object?>?> getFoodById(int id) async {
     final database = await db;
-    final rows = await database.query('food', where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows = await database.query(
+      'food',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
     if (rows.isEmpty) return null;
     return rows.first;
   }
@@ -235,7 +240,12 @@ class LocalDb {
 
   Future<Map<String, Object?>?> getMealById(int id) async {
     final database = await db;
-    final rows = await database.query('meals', where: 'id = ?', whereArgs: [id], limit: 1);
+    final rows = await database.query(
+      'meals',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
     if (rows.isEmpty) return null;
     return rows.first;
   }
@@ -245,17 +255,20 @@ class LocalDb {
     return database.delete('meals', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<int> updateMeal(Map<String, Object?> row) async {
+  Future<void> updateMeal(int id, Map<String, Object?> row) async {
     final database = await db;
 
-    final id = row['id'] as int;
-
-    return database.update('meals', row, where: 'id = ?', whereArgs: [id]);
+    await database.update('meals', row, where: 'id = ?', whereArgs: [id]);
   }
 
   Future<int> insertIngredient(Map<String, Object?> row) async {
     final database = await db;
     return database.insert('ingredients', row);
+  }
+
+  Future<void> deleteIngredientsForMeal(int mealId) async {
+    final database = await db;
+    await database.delete('ingredients', where: 'meal_id = ?', whereArgs: [mealId]);
   }
 
   Future<List<Map<String, Object?>>> getIngredientsForMeal(int mealId) async {
@@ -295,5 +308,16 @@ class LocalDb {
   Future<int> deleteDietEntry(int id) async {
     final database = await db;
     return database.delete('diet_entries', where: 'id = ?', whereArgs: [id]);
+  }
+
+  Future<void> updateDietEntryMeal(int entryId, int newMealId) async {
+    final database = await db;
+
+    await database.update(
+      'diet_entries',
+      {'meal_id': newMealId},
+      where: 'id = ?',
+      whereArgs: [entryId],
+    );
   }
 }

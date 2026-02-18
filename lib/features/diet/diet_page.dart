@@ -50,7 +50,7 @@ class _DietPageState extends State<DietPage> {
       today.day,
     ).millisecondsSinceEpoch;
 
-    await db.insertDietEntry({'meal_id': meal.id, 'date': dateKey});
+    await db.insertDietEntry({'meal_id': meal.mealId, 'date': dateKey});
 
     await _loadTodayMeals();
   }
@@ -85,7 +85,7 @@ class _DietPageState extends State<DietPage> {
       }
       loaded.add(
         Meal(
-          id: mealId,
+          mealId: mealId,
           name: meal['name'] as String,
           ingredients: ingredients,
         ),
@@ -114,6 +114,7 @@ class _DietPageState extends State<DietPage> {
     List<Meal> loadedMeals = [];
 
     for (final entry in entries) {
+      final entryId = entry['id'] as int;
       final mealId = entry['meal_id'] as int;
 
       final mealMap = await db.getMealById(mealId);
@@ -136,7 +137,12 @@ class _DietPageState extends State<DietPage> {
       }
 
       loadedMeals.add(
-        Meal(name: mealMap['name'] as String, ingredients: ingredients),
+        Meal(
+          entryId: entryId,
+          mealId: mealId,
+          name: mealMap['name'] as String,
+          ingredients: ingredients,
+        ),
       );
     }
 
@@ -174,16 +180,41 @@ class _DietPageState extends State<DietPage> {
     );
   }
 
-  void _deleteMeal(int index) {
-    setState(() {
-      _meals.removeAt(index);
-    });
+  Future<void> _deleteMeal(int index) async {
+    final db = LocalDb.instance;
+    final meal = _meals[index];
+
+    await db.deleteDietEntry(meal.entryId!);
+
+    await _loadTodayMeals();
   }
 
-  void _editMeal(int index, Meal updatedMeal) {
-    setState(() {
-      _meals[index] = updatedMeal;
-    });
+  Future<void> _editMeal(int index, Meal updatedMeal) async {
+    final db = LocalDb.instance;
+    final old = _meals[index];
+
+    final mealId = old.mealId!;
+
+    await db.updateMeal(mealId, {'name': updatedMeal.name});
+    await db.deleteIngredientsForMeal(mealId);
+
+    for (final ing in updatedMeal.ingredients) {
+      int foodId;
+
+      if (ing.food.id == null) {
+        foodId = await db.insertFood(ing.food.toMap());
+        ing.food.id = foodId;
+      } else {
+        foodId = ing.food.id!;
+      }
+      await db.insertIngredient({
+        'meal_id': mealId,
+        'food_id': foodId,
+        'servings': ing.servings,
+      });
+    }
+
+    await _loadTodayMeals();
   }
 
   void _openEditSheet(int index, Meal meal) {
@@ -195,8 +226,8 @@ class _DietPageState extends State<DietPage> {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: CreateMealForm(
-          onSave: (updatedMeal) {
-            _editMeal(index, updatedMeal);
+          onSave: (updatedMeal) async {
+            await _editMeal(index, updatedMeal);
           },
           initialMeal: meal,
         ),

@@ -25,7 +25,7 @@ class Food {
       'protein': proteinPer100g,
       'carbs': carbsPer100g,
       'fat': fatPer100g,
-      'defaultServingGrams': defaultServingGrams
+      'defaultServingGrams': defaultServingGrams,
     };
   }
 
@@ -37,7 +37,7 @@ class Food {
       proteinPer100g: map['protein'] as int,
       carbsPer100g: map['carbs'] as int,
       fatPer100g: map['fat'] as int,
-      defaultServingGrams: (map['defaultServingGrams'] as num).toDouble()
+      defaultServingGrams: (map['defaultServingGrams'] as num).toDouble(),
     );
   }
 
@@ -60,18 +60,10 @@ class Ingredient {
   final Food food;
   double servings; // number of servings (e.g. 2 = 2 servings)
 
-  Ingredient({
-    this.id,
-    required this.food, 
-    required this.servings
-  });
+  Ingredient({this.id, required this.food, required this.servings});
 
   Map<String, Object?> toMap() {
-    return {
-      'id': id,
-      'foodId': food.id,
-      'servings': servings,
-    };
+    return {'id': id, 'foodId': food.id, 'servings': servings};
   }
 
   factory Ingredient.fromMap(Map<String, Object?> map, Food food) {
@@ -93,27 +85,17 @@ class Ingredient {
 }
 
 class Meal {
-  final int? id;
+  final int? entryId;
+  final int? mealId;
   final String name;
   final List<Ingredient> ingredients;
 
-  Meal({
-    this.id,
-    required this.name, 
-    required this.ingredients
-  });
-
-  Map<String, Object?> toMap() {
-    return {
-      'id': id,
-      'name': name,
-      // Ingredients would be stored in a separate table with a mealId foreign key
-    };
-  }
+  Meal({this.entryId, this.mealId, required this.name, required this.ingredients});
 
   factory Meal.fromMap(Map<String, Object?> map, List<Ingredient> ingredients) {
     return Meal(
-      id: map['id'] as int?,
+      entryId: map['entryId'] as int?,
+      mealId: map['mealId'] as int?,
       name: map['name'] as String,
       ingredients: ingredients,
     );
