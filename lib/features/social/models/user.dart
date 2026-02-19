@@ -5,8 +5,6 @@ class User {
   final String password;
   final String? profileImageUrl;
   final String bio;
-  final List<String> postIds;
-  final List<String> friendsIds;
 
   User({
     required this.id,
@@ -15,8 +13,6 @@ class User {
     required this.password,
     this.profileImageUrl,
     this.bio = '',
-    this.friendsIds = const [],
-    this.postIds = const [],
   });
 
   factory User.fromMap(Map<String, dynamic> map) {
@@ -27,8 +23,6 @@ class User {
       password: map['password'],
       profileImageUrl: map['profileImageUrl'],
       bio: map['bio'] ?? '',
-      friendsIds: List<String>.from(map['friendsIds'] ?? []),
-      postIds: List<String>.from(map['postIds'] ?? []),
     );
   }
 
@@ -40,8 +34,6 @@ class User {
       'password': password,
       'profileImageUrl': profileImageUrl,
       'bio': bio,
-      'friendsIds': friendsIds,
-      'postIds': postIds,
     };
   }
 }
