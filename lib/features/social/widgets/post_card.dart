@@ -20,14 +20,14 @@ class PostCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(post.user,
+                Text(post.userId,
                     style: const TextStyle(fontWeight: FontWeight.bold)),
                 Text(timestampString,
                     style: const TextStyle(color: Colors.grey, fontSize: 12)),
               ],
             ),
             const SizedBox(height: 8),
-            Text(post.message),
+            Text(post.content),
             const SizedBox(height: 12),
             Row(
               children: const [

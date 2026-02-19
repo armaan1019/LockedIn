@@ -11,16 +11,7 @@ class SocialPage extends StatefulWidget {
 }
 
 class _SocialPageState extends State<SocialPage> {
-  final List<Post> _posts = [
-    Post(
-        user: 'Alice',
-        message: 'Just finished a 5k run! 🏃‍♀️',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2))),
-    Post(
-        user: 'Bob',
-        message: 'Tried the new protein smoothie recipe. Delicious!',
-        timestamp: DateTime.now().subtract(const Duration(hours: 1))),
-  ];
+  final List<Post> _posts = [];
 
   void _addPost(Post post) {
     setState(() {
@@ -57,7 +48,7 @@ class _SocialPageState extends State<SocialPage> {
           itemCount: _posts.length,
           itemBuilder: (context, index) {
             final post = _posts[index];
-            return PostCard(post: post, timestampString: _formatTimestamp(post.timestamp));
+            return PostCard(post: post, timestampString: _formatTimestamp(post.createdAt));
           },
         ),
       ),
