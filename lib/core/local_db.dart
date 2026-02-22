@@ -7,7 +7,15 @@ class LocalDb {
   LocalDb._();
 
   Database? _db;
-  static const String _currentUserId = 'default_user';
+  static const String _currentUserId = "default_user";
+  static String? currentUserId;
+
+  static String get userId {
+    if (currentUserId == null) {
+      throw Exception("No user logged in");
+    }
+    return currentUserId!;
+  }
 
   // =========================
   // Public DB Getter
@@ -20,7 +28,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 6,
+      version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
       onOpen: _onOpen,
@@ -41,9 +49,7 @@ class LocalDb {
       'password': 'default_password',
       'profileImageUrl': null,
       'bio': '',
-    },
-    conflictAlgorithm: ConflictAlgorithm.ignore,
-    );
+    }, conflictAlgorithm: ConflictAlgorithm.ignore);
   }
 
   static Future<void> _onCreate(Database db, int version) async {
@@ -74,6 +80,7 @@ class LocalDb {
       );
     }
     if (oldVersion < 6) {
+      await _createUsersTable(db);
       await db.execute(
         'ALTER TABLE workouts ADD COLUMN user_id TEXT NOT NULL DEFAULT "default_user"',
       );
@@ -86,6 +93,9 @@ class LocalDb {
       await db.execute(
         'ALTER TABLE diet_entries ADD COLUMN user_id TEXT NOT NULL DEFAULT "default_user"',
       );
+    }
+    if (oldVersion < 7) {
+      await _createUsersTable(db);
     }
   }
 
@@ -204,7 +214,12 @@ class LocalDb {
 
   Future<List<Map<String, Object?>>> getWorkouts() async {
     final database = await db;
-    return database.query('workouts', where: 'user_id = ?', whereArgs: [_currentUserId], orderBy: 'id DESC');
+    return database.query(
+      'workouts',
+      where: 'user_id = ?',
+      whereArgs: [_currentUserId],
+      orderBy: 'id DESC',
+    );
   }
 
   Future<int> deleteWorkout(int id) async {
@@ -298,7 +313,12 @@ class LocalDb {
 
   Future<List<Map<String, Object?>>> getMeals() async {
     final database = await db;
-    return database.query('meals', where: 'user_id = ?', whereArgs: [_currentUserId], orderBy: 'id DESC');
+    return database.query(
+      'meals',
+      where: 'user_id = ?',
+      whereArgs: [_currentUserId],
+      orderBy: 'id DESC',
+    );
   }
 
   Future<Map<String, Object?>?> getMealById(int id) async {

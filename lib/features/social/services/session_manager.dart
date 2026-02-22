@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import '../models/user.dart';
 
 class SessionManager extends ChangeNotifier {
-  User? currentUser;
+  User? _currentUser;
 
-  bool get isLoggedIn => currentUser != null;
+  bool get isLoggedIn => _currentUser != null;
   void login(User user) {
-    currentUser = user;
+    _currentUser = user;
     notifyListeners();
   }
 
   void logout() {
-    currentUser = null;
+    _currentUser = null;
     notifyListeners();
   }
 }

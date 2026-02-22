@@ -13,7 +13,7 @@ class LoginPage extends StatefulWidget {
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
 
-  final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
   final _authService = AuthService();
@@ -30,7 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     final user = await _authService.login(
-      _emailController.text.trim(),
+      _usernameController.text.trim(),
       _passwordController.text.trim(),
     );
 
@@ -67,13 +67,13 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 40),
 
                 TextFormField(
-                  controller: _emailController,
+                  controller: _usernameController,
                   decoration: const InputDecoration(
-                    labelText: "Email",
+                    labelText: "Username",
                     border: OutlineInputBorder(),
                   ),
                   validator: (v) =>
-                      v == null || v.isEmpty ? "Enter email" : null,
+                      v == null || v.isEmpty ? "Enter username" : null,
                 ),
 
                 const SizedBox(height: 16),
