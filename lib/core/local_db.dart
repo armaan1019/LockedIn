@@ -204,7 +204,7 @@ class LocalDb {
 
   Future<List<Map<String, Object?>>> getWorkouts() async {
     final database = await db;
-    return database.query('workouts', orderBy: 'id DESC');
+    return database.query('workouts', where: 'user_id = ?', whereArgs: [_currentUserId], orderBy: 'id DESC');
   }
 
   Future<int> deleteWorkout(int id) async {
@@ -298,7 +298,7 @@ class LocalDb {
 
   Future<List<Map<String, Object?>>> getMeals() async {
     final database = await db;
-    return database.query('meals', orderBy: 'id DESC');
+    return database.query('meals', where: 'user_id = ?', whereArgs: [_currentUserId], orderBy: 'id DESC');
   }
 
   Future<Map<String, Object?>?> getMealById(int id) async {
@@ -367,8 +367,8 @@ class LocalDb {
     final database = await db;
     return database.query(
       'diet_entries',
-      where: 'date = ?',
-      whereArgs: [date],
+      where: 'date = ? AND user_id = ?',
+      whereArgs: [date, _currentUserId],
       orderBy: 'id DESC',
     );
   }
