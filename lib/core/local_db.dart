@@ -7,6 +7,7 @@ class LocalDb {
   LocalDb._();
 
   Database? _db;
+  static const String _currentUserId = 'default_user';
 
   // =========================
   // Public DB Getter
@@ -19,9 +20,10 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
+      onOpen: _onOpen,
     );
 
     return _db!;
@@ -30,6 +32,19 @@ class LocalDb {
   // =========================
   // DB Lifecycle
   // =========================
+
+  static Future<void> _onOpen(Database db) async {
+    await db.insert('users', {
+      'id': 'default_user',
+      'username': 'Default User',
+      'email': 'default_user@example.com',
+      'password': 'default_password',
+      'profileImageUrl': null,
+      'bio': '',
+    },
+    conflictAlgorithm: ConflictAlgorithm.ignore,
+    );
+  }
 
   static Future<void> _onCreate(Database db, int version) async {
     await _createTables(db);
@@ -58,6 +73,20 @@ class LocalDb {
         'ALTER TABLE meals ADD COLUMN is_template INTEGER DEFAULT 0',
       );
     }
+    if (oldVersion < 6) {
+      await db.execute(
+        'ALTER TABLE workouts ADD COLUMN user_id TEXT NOT NULL DEFAULT "default_user"',
+      );
+      await db.execute(
+        'ALTER TABLE workout_sessions ADD COLUMN user_id TEXT NOT NULL DEFAULT "default_user"',
+      );
+      await db.execute(
+        'ALTER TABLE meals ADD COLUMN user_id TEXT NOT NULL DEFAULT "default_user"',
+      );
+      await db.execute(
+        'ALTER TABLE diet_entries ADD COLUMN user_id TEXT NOT NULL DEFAULT "default_user"',
+      );
+    }
   }
 
   // =========================
@@ -71,14 +100,29 @@ class LocalDb {
     await _createFoodTable(db);
     await _createMealsTable(db);
     await _createIngredientsTable(db);
+    await _createUsersTable(db);
+  }
+
+  static Future<void> _createUsersTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE users (
+        id TEXT PRIMARY KEY,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL,
+        password TEXT NOT NULL,
+        profileImageUrl TEXT,
+        bio TEXT DEFAULT ''
+        )''');
   }
 
   static Future<void> _createDietEntriesTable(Database db) async {
     await db.execute('''
       CREATE TABLE diet_entries (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
         meal_id INTEGER NOT NULL,
         date INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id),
         FOREIGN KEY (meal_id) REFERENCES meals (id)
       )
     ''');
@@ -102,7 +146,10 @@ class LocalDb {
     await db.execute('''
       CREATE TABLE meals (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL
+        user_id TEXT NOT NULL,
+        name TEXT NOT NULL,
+        is_template INTEGER DEFAULT 0,
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )
     ''');
   }
@@ -124,10 +171,12 @@ class LocalDb {
     await db.execute('''
       CREATE TABLE workouts (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
         title TEXT NOT NULL,
         exercises TEXT NOT NULL,
         duration INTEGER NOT NULL,
-        calories INTEGER NOT NULL
+        calories INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )
     ''');
   }
@@ -136,9 +185,11 @@ class LocalDb {
     await db.execute('''
       CREATE TABLE workout_sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id TEXT NOT NULL,
         title TEXT NOT NULL,
         exercises TEXT NOT NULL,
-        date INTEGER NOT NULL
+        date INTEGER NOT NULL,
+        FOREIGN KEY (user_id) REFERENCES users(id)
       )
     ''');
   }
@@ -147,6 +198,7 @@ class LocalDb {
 
   Future<int> insertWorkout(Map<String, Object?> row) async {
     final database = await db;
+    row['user_id'] = _currentUserId;
     return database.insert('workouts', row);
   }
 
@@ -172,6 +224,7 @@ class LocalDb {
 
   Future<int> insertWorkoutSession(Map<String, Object?> row) async {
     final database = await db;
+    row['user_id'] = _currentUserId;
     return database.insert('workout_sessions', row);
   }
 
@@ -233,9 +286,13 @@ class LocalDb {
     return database.delete('food', where: 'id = ?', whereArgs: [id]);
   }
 
-  Future<int> insertMeal(Map<String, Object?> row, {bool isTemplate = false}) async {
+  Future<int> insertMeal(
+    Map<String, Object?> row, {
+    bool isTemplate = false,
+  }) async {
     final database = await db;
     row['is_template'] = isTemplate ? 1 : 0;
+    row['user_id'] = _currentUserId;
     return database.insert('meals', row);
   }
 
@@ -302,6 +359,7 @@ class LocalDb {
 
   Future<int> insertDietEntry(Map<String, Object?> row) async {
     final database = await db;
+    row['user_id'] = _currentUserId;
     return database.insert('diet_entries', row);
   }
 
