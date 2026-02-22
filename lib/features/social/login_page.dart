@@ -16,7 +16,7 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  final _authService = AuthService();
+  final _authService = AuthService.instance;
 
   bool _isLoading = false;
   String? _error;
@@ -58,10 +58,7 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 const Text(
                   "LockedIn",
-                  style: TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                 ),
 
                 const SizedBox(height: 40),
@@ -92,10 +89,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 20),
 
                 if (_error != null)
-                  Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
+                  Text(_error!, style: const TextStyle(color: Colors.red)),
 
                 const SizedBox(height: 10),
 
@@ -107,6 +101,13 @@ class _LoginPageState extends State<LoginPage> {
                         ? const CircularProgressIndicator()
                         : const Text("Login"),
                   ),
+                ),
+                const SizedBox(height: 12),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/signup');
+                  },
+                  child: const Text("Don't have an account? Sign Up"),
                 ),
               ],
             ),

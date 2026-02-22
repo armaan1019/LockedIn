@@ -1,18 +1,54 @@
 import '../models/user.dart';
+import '../../../core/local_db.dart';
+import 'package:uuid/uuid.dart';
 
 class AuthService {
-  Future<User?> login(String username, String password) async {
-    await Future.delayed(const Duration(seconds: 1)); // Simulate network delay
+  AuthService._();
+  static final instance = AuthService._();
 
-    if (username.isNotEmpty && password.isNotEmpty) {
-      return User(
-        id: "demo_user", 
-        username: username, 
-        email: "$username@example.com",
-        password: password,
-      );
+  String? _currentUserId;
+  String? get currentUserId => _currentUserId;
+  Future<User?> login(String username, String password) async {
+    final db = await LocalDb.instance.db;
+    final result = await db.query(
+      'users',
+      where: 'username = ? AND password = ?',
+      whereArgs: [username, password],
+      limit: 1,
+    );
+
+    if (result.isEmpty) return null;
+    final user = User.fromMap(result.first);
+    _currentUserId = user.id;
+    return user;
+  }
+
+  Future<User?> signUp({
+    required String usernname,
+    required String email,
+    required String password,
+  }) async {
+    final db = await LocalDb.instance.db;
+
+    final existing = await db.query(
+      'users',
+      where: 'username = ?',
+      whereArgs: [usernname],
+    );
+    if (existing.isNotEmpty) {
+      return null; // username taken
     }
 
-    return null;
+    const uuid = Uuid();
+    final id = uuid.v6();
+
+    final user = User(id: id, username: usernname, email: email, password: password);
+    await db.insert('users', user.toMap());
+    _currentUserId = id;
+    return user;
+  }
+
+  void logout() {
+    _currentUserId = null;
   }
 }
