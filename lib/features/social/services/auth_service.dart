@@ -24,7 +24,7 @@ class AuthService {
   }
 
   Future<User?> signUp({
-    required String usernname,
+    required String username,
     required String email,
     required String password,
   }) async {
@@ -33,7 +33,7 @@ class AuthService {
     final existing = await db.query(
       'users',
       where: 'username = ?',
-      whereArgs: [usernname],
+      whereArgs: [username],
     );
     if (existing.isNotEmpty) {
       return null; // username taken
@@ -42,7 +42,7 @@ class AuthService {
     const uuid = Uuid();
     final id = uuid.v6();
 
-    final user = User(id: id, username: usernname, email: email, password: password);
+    final user = User(id: id, username: username, email: email, password: password);
     await db.insert('users', user.toMap());
     _currentUserId = id;
     return user;

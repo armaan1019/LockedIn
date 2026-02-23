@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'services/auth_service.dart';
 import 'services/session_manager.dart';
 import 'package:provider/provider.dart';
+import 'signup_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -105,7 +106,7 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, '/signup');
+                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpPage()));
                   },
                   child: const Text("Don't have an account? Sign Up"),
                 ),

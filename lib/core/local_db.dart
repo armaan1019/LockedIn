@@ -1,20 +1,20 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../features/workout/models/workout.dart';
+import '../features/social/services/auth_service.dart';
 
 class LocalDb {
   static final LocalDb instance = LocalDb._();
   LocalDb._();
 
   Database? _db;
-  static const String _currentUserId = "default_user";
-  static String? currentUserId;
 
   static String get userId {
-    if (currentUserId == null) {
+    final id = AuthService.instance.currentUserId;
+    if (id == null) {
       throw Exception("No user logged in");
     }
-    return currentUserId!;
+    return id;
   }
 
   // =========================
@@ -31,7 +31,6 @@ class LocalDb {
       version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
-      onOpen: _onOpen,
     );
 
     return _db!;
@@ -40,17 +39,6 @@ class LocalDb {
   // =========================
   // DB Lifecycle
   // =========================
-
-  static Future<void> _onOpen(Database db) async {
-    await db.insert('users', {
-      'id': 'default_user',
-      'username': 'Default User',
-      'email': 'default_user@example.com',
-      'password': 'default_password',
-      'profileImageUrl': null,
-      'bio': '',
-    }, conflictAlgorithm: ConflictAlgorithm.ignore);
-  }
 
   static Future<void> _onCreate(Database db, int version) async {
     await _createTables(db);
@@ -208,7 +196,7 @@ class LocalDb {
 
   Future<int> insertWorkout(Map<String, Object?> row) async {
     final database = await db;
-    row['user_id'] = _currentUserId;
+    row['user_id'] = userId;
     return database.insert('workouts', row);
   }
 
@@ -217,7 +205,7 @@ class LocalDb {
     return database.query(
       'workouts',
       where: 'user_id = ?',
-      whereArgs: [_currentUserId],
+      whereArgs: [userId],
       orderBy: 'id DESC',
     );
   }
@@ -239,7 +227,7 @@ class LocalDb {
 
   Future<int> insertWorkoutSession(Map<String, Object?> row) async {
     final database = await db;
-    row['user_id'] = _currentUserId;
+    row['user_id'] = userId;
     return database.insert('workout_sessions', row);
   }
 
@@ -307,7 +295,7 @@ class LocalDb {
   }) async {
     final database = await db;
     row['is_template'] = isTemplate ? 1 : 0;
-    row['user_id'] = _currentUserId;
+    row['user_id'] = userId;
     return database.insert('meals', row);
   }
 
@@ -316,7 +304,7 @@ class LocalDb {
     return database.query(
       'meals',
       where: 'user_id = ?',
-      whereArgs: [_currentUserId],
+      whereArgs: [userId],
       orderBy: 'id DESC',
     );
   }
@@ -379,7 +367,7 @@ class LocalDb {
 
   Future<int> insertDietEntry(Map<String, Object?> row) async {
     final database = await db;
-    row['user_id'] = _currentUserId;
+    row['user_id'] = userId;
     return database.insert('diet_entries', row);
   }
 
@@ -388,7 +376,7 @@ class LocalDb {
     return database.query(
       'diet_entries',
       where: 'date = ? AND user_id = ?',
-      whereArgs: [date, _currentUserId],
+      whereArgs: [date, userId],
       orderBy: 'id DESC',
     );
   }
