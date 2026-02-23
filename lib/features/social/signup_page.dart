@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'services/session_manager.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -33,7 +34,7 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() => _isLoading = true);
 
     try {
-      final user = await AuthService.instance.signUp(
+      final success = await context.read<SessionManager>().signUp(
         username: _usernameController.text.trim(),
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
@@ -41,7 +42,7 @@ class _SignUpPageState extends State<SignUpPage> {
 
       if (!mounted) return;
 
-      if (user == null) {
+      if (!success) {
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(const SnackBar(content: Text("Username already taken")));
@@ -49,10 +50,8 @@ class _SignUpPageState extends State<SignUpPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Account created successfully")),
+        const SnackBar(content: Text("Account created successfully. Please log in.")),
       );
-
-      AuthService.instance.logout();
 
       Navigator.pop(context);
     } catch (e) {

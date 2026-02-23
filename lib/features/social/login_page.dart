@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'services/auth_service.dart';
 import 'services/session_manager.dart';
 import 'package:provider/provider.dart';
 import 'signup_page.dart';
@@ -17,8 +16,6 @@ class _LoginPageState extends State<LoginPage> {
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  final _authService = AuthService.instance;
-
   bool _isLoading = false;
   String? _error;
 
@@ -30,20 +27,16 @@ class _LoginPageState extends State<LoginPage> {
       _error = null;
     });
 
-    final user = await _authService.login(
+    final success = await context.read<SessionManager>().login(
       _usernameController.text.trim(),
       _passwordController.text.trim(),
     );
 
     setState(() => _isLoading = false);
 
-    if (user == null) {
+    if(!success) {
       setState(() => _error = "Invalid login");
-      return;
     }
-
-    // save session
-    context.read<SessionManager>().login(user);
   }
 
   @override
@@ -106,7 +99,10 @@ class _LoginPageState extends State<LoginPage> {
                 const SizedBox(height: 12),
                 TextButton(
                   onPressed: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const SignUpPage()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const SignUpPage()),
+                    );
                   },
                   child: const Text("Don't have an account? Sign Up"),
                 ),
