@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../social/services/session_manager.dart';
+import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -28,6 +30,14 @@ class SettingsPage extends StatelessWidget {
               title: const Text('Change Password'),
               onTap: () {
                 // Navigate to change password
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () {
+                context.read<SessionManager>().logout();
+                Navigator.pop(context);
               },
             ),
             const SizedBox(height: 24),
