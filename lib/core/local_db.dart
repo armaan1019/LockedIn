@@ -28,7 +28,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -84,6 +84,10 @@ class LocalDb {
     }
     if (oldVersion < 7) {
       await _createUsersTable(db);
+    }
+    if (oldVersion < 8) {
+      await db.execute('DROP TABLE IF EXISTS workout_sessions');
+      await _createWorkoutSessionsTable(db);
     }
   }
 
@@ -184,10 +188,11 @@ class LocalDb {
       CREATE TABLE workout_sessions (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id TEXT NOT NULL,
-        title TEXT NOT NULL,
+        workout_id INTEGER NOT NULL,
         exercises TEXT NOT NULL,
         date INTEGER NOT NULL,
-        FOREIGN KEY (user_id) REFERENCES users(id)
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (workout_id) REFERENCES workouts(id)
       )
     ''');
   }
@@ -210,9 +215,25 @@ class LocalDb {
     );
   }
 
+  Future<Workout?> getWorkoutById(int id) async {
+    final database = await db;
+    final result = await database.query(
+      'workouts',
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
+      limit: 1,
+    );
+    if (result.isEmpty) return null;
+    return Workout.fromMap(result.first);
+  }
+
   Future<int> deleteWorkout(int id) async {
     final database = await db;
-    return database.delete('workouts', where: 'id = ?', whereArgs: [id]);
+    return database.delete(
+      'workouts',
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
+    );
   }
 
   Future<int> updateWorkout(Map<String, Object?> row) async {
@@ -220,23 +241,34 @@ class LocalDb {
 
     final id = row['id'] as int;
 
-    return database.update('workouts', row, where: 'id = ?', whereArgs: [id]);
+    return database.update(
+      'workouts',
+      row,
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
+    );
   }
 
   // Workout Sessions CRUD
 
   Future<int> insertWorkoutSession(Map<String, Object?> row) async {
     final database = await db;
+    final workoutId = row['workout_id'];
+    if (workoutId == null) {
+      throw Exception("workout_id is required");
+    }
     row['user_id'] = userId;
     return database.insert('workout_sessions', row);
   }
 
-  Future<List<WorkoutSession>> getWorkoutSessionsByTitle(String title) async {
+  Future<List<WorkoutSession>> getWorkoutSessionsByWorkoutId(
+    int workoutId,
+  ) async {
     final database = await db;
     final rows = await database.query(
       'workout_sessions',
-      where: 'title = ? AND user_id = ?',
-      whereArgs: [title, userId],
+      where: 'workout_id = ? AND user_id = ?',
+      whereArgs: [workoutId, userId],
       orderBy: 'date DESC',
     );
 
@@ -247,8 +279,8 @@ class LocalDb {
     final database = await db;
     return database.delete(
       'workout_sessions',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
     );
   }
 
@@ -313,8 +345,8 @@ class LocalDb {
     final database = await db;
     final rows = await database.query(
       'meals',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
       limit: 1,
     );
     if (rows.isEmpty) return null;
@@ -323,13 +355,22 @@ class LocalDb {
 
   Future<int> deleteMeal(int id) async {
     final database = await db;
-    return database.delete('meals', where: 'id = ?', whereArgs: [id]);
+    return database.delete(
+      'meals',
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
+    );
   }
 
   Future<void> updateMeal(int id, Map<String, Object?> row) async {
     final database = await db;
 
-    await database.update('meals', row, where: 'id = ?', whereArgs: [id]);
+    await database.update(
+      'meals',
+      row,
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
+    );
   }
 
   Future<int> insertIngredient(Map<String, Object?> row) async {
@@ -383,7 +424,11 @@ class LocalDb {
 
   Future<int> deleteDietEntry(int id) async {
     final database = await db;
-    return database.delete('diet_entries', where: 'id = ?', whereArgs: [id]);
+    return database.delete(
+      'diet_entries',
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
+    );
   }
 
   Future<void> updateDietEntryMeal(int entryId, int newMealId) async {
@@ -392,8 +437,8 @@ class LocalDb {
     await database.update(
       'diet_entries',
       {'meal_id': newMealId},
-      where: 'id = ?',
-      whereArgs: [entryId],
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [entryId, userId],
     );
   }
 }

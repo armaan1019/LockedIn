@@ -39,6 +39,13 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     }
   }
 
+  @override
+  void dispose() {
+    _repsController.dispose();
+    _weightController.dispose();
+    super.dispose();
+  }
+
   void _addSet() {
     final reps = int.tryParse(_repsController.text);
     final weight = double.tryParse(_weightController.text);
@@ -115,7 +122,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
 
   Future<void> _finishWorkout() async {
     final session = WorkoutSession(
-      title: widget.workout.title,
+      workoutId: widget.workout.id!,
       date: DateTime.now(),
       exercises: exerciseSessions,
     );

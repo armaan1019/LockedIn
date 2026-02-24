@@ -69,7 +69,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   void _showPastWorkouts(Workout workout) async {
-    final pastSessions = await LocalDb.instance.getWorkoutSessionsByTitle(workout.title);
+    final pastSessions = await LocalDb.instance.getWorkoutSessionsByWorkoutId(workout.id!);
 
     showModalBottomSheet(
       context: context,

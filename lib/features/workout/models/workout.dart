@@ -2,13 +2,13 @@ import 'dart:convert';
 
 class WorkoutSession {
   final int? id;
-  final String title;
+  final int workoutId;
   final List<ExerciseSession> exercises;
   final DateTime date;
 
   WorkoutSession({
     this.id,
-    required this.title,
+    required this.workoutId,
     required this.exercises,
     required this.date,
   });
@@ -16,7 +16,7 @@ class WorkoutSession {
   Map<String, Object?> toMap() {
     return {
       'id': id,
-      'title': title,
+      'workout_id': workoutId,
       'exercises': jsonEncode(exercises.map((e) => e.toMap()).toList()),
       'date': date.millisecondsSinceEpoch,
     };
@@ -25,7 +25,7 @@ class WorkoutSession {
   WorkoutSession copyWith({int? id}) {
     return WorkoutSession(
       id: id ?? this.id,
-      title: title,
+      workoutId: workoutId,
       exercises: exercises,
       date: date,
     );
@@ -36,7 +36,7 @@ class WorkoutSession {
 
     return WorkoutSession(
       id: map['id'] as int,
-      title: map['title'] as String,
+      workoutId: map['workout_id'] as int,
       date: DateTime.fromMillisecondsSinceEpoch(map['date'] as int),
       exercises: exerciseList.map((e) {
         final setsList = e['sets'] as List;
@@ -44,10 +44,7 @@ class WorkoutSession {
         return ExerciseSession(
           name: e['name'],
           sets: setsList.map((s) {
-            return SetEntry(
-              reps: s['reps'],
-              weight: s['weight']?.toDouble(),
-            );
+            return SetEntry(reps: s['reps'], weight: s['weight']?.toDouble());
           }).toList(),
         );
       }).toList(),
