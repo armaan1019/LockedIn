@@ -235,8 +235,8 @@ class LocalDb {
     final database = await db;
     final rows = await database.query(
       'workout_sessions',
-      where: 'title = ?',
-      whereArgs: [title],
+      where: 'title = ? AND user_id = ?',
+      whereArgs: [title, userId],
       orderBy: 'date DESC',
     );
 

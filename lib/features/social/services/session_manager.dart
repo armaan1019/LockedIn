@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart';
 import 'auth_service.dart';
-import 'package:provider/provider.dart';
 
 class SessionManager extends ChangeNotifier {
   User? _currentUser;
