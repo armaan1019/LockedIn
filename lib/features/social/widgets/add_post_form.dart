@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../models/post.dart';
-import 'package:uuid/uuid.dart';
 
 class AddPostForm extends StatefulWidget {
   final void Function(Post) onSave;
@@ -12,7 +11,6 @@ class AddPostForm extends StatefulWidget {
 }
 
 class _AddPostFormState extends State<AddPostForm> {
-  final _uuid = const Uuid();
   final _formKey = GlobalKey<FormState>();
   final _messageController = TextEditingController();
   final _userController = TextEditingController();
@@ -27,7 +25,6 @@ class _AddPostFormState extends State<AddPostForm> {
   void _save() {
     if (_formKey.currentState!.validate()) {
       final post = Post(
-        id: _uuid.v4(),
         userId: _userController.text,
         content: _messageController.text,
         createdAt: DateTime.now(),
