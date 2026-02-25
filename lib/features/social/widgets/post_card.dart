@@ -4,8 +4,14 @@ import '../models/post.dart';
 class PostCard extends StatelessWidget {
   final Post post;
   final String timestampString;
+  final String authorName;
 
-  const PostCard({super.key, required this.post, required this.timestampString});
+  const PostCard({
+    super.key,
+    required this.post,
+    required this.timestampString,
+    required this.authorName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,10 +26,14 @@ class PostCard extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(post.userId,
-                    style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(timestampString,
-                    style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                Text(
+                  authorName,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  timestampString,
+                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                ),
               ],
             ),
             const SizedBox(height: 8),

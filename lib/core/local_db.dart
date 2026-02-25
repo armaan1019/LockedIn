@@ -28,7 +28,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -89,6 +89,9 @@ class LocalDb {
       await db.execute('DROP TABLE IF EXISTS workout_sessions');
       await _createWorkoutSessionsTable(db);
     }
+    if (oldVersion < 9) {
+      await _createPostsTable(db);
+    }
   }
 
   // =========================
@@ -103,6 +106,19 @@ class LocalDb {
     await _createMealsTable(db);
     await _createIngredientsTable(db);
     await _createUsersTable(db);
+    await _createPostsTable(db);
+  }
+
+  static Future<void> _createPostsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE posts (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      remote_id TEXT UNIQUE,
+      user_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at INT NOT NULL,
+      FOREIGN KEY (user_id) references users(id)
+      )''');
   }
 
   static Future<void> _createUsersTable(Database db) async {
@@ -115,6 +131,10 @@ class LocalDb {
         profileImageUrl TEXT,
         bio TEXT DEFAULT ''
         )''');
+
+    await db.execute(
+      'CREATE INDEX idx_posts_user_ created ON posts(user_id, created_at DESC)',
+    );
   }
 
   static Future<void> _createDietEntriesTable(Database db) async {
@@ -439,6 +459,53 @@ class LocalDb {
       {'meal_id': newMealId},
       where: 'id = ? AND user_id = ?',
       whereArgs: [entryId, userId],
+    );
+  }
+
+  //CRUD for posts table
+
+  Future<List<Map<String, Object?>>> getAllPosts(int? before) async {
+    final database = await db;
+    return database.rawQuery('''
+    SELECT posts.*, users.username FROM posts
+    JOIN users ON users.id = posts.user_id
+    ${before != null ? 'WHERE posts.created_at < ?' : ''}
+    ORDER BY posts.created_at DESC
+    LIMIT 50
+    ''', 
+    before != null ? [before] : [],
+    );
+  }
+
+  Future<int> insertPost(Map<String, Object?> row) async {
+    final database = await db;
+    row['user_id'] = userId;
+    return database.insert('posts', row);
+  }
+
+  Future<int> deletePost(int id) async {
+    final database = await db;
+    return database.delete(
+      'posts',
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
+    );
+  }
+
+  Future<int> updatePost(Map<String, Object?> row) async {
+    final database = await db;
+
+    final id = row['id'] as int;
+
+    final updateRow = Map<String, Object?>.from(row)
+      ..remove('id')
+      ..remove('user_id');
+
+    return database.update(
+      'posts',
+      updateRow,
+      where: 'id = ? AND user_id = ?',
+      whereArgs: [id, userId],
     );
   }
 }

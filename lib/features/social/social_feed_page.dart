@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'widgets/post_card.dart';
 import 'widgets/add_post_form.dart';
 import 'models/post.dart';
+import '../../core/local_db.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -11,13 +12,32 @@ class SocialPage extends StatefulWidget {
 }
 
 class _SocialPageState extends State<SocialPage> {
-  final List<Post> _posts = [];
+  List<Post> _posts = [];
+  List<String> _usernames = [];
+  final _db = LocalDb.instance;
 
-  void _addPost(Post post) {
+  @override
+  void initState() {
+    super.initState();
+    _loadPosts();
+  }
+
+  Future<void> _loadPosts() async {
+    final rows = await _db.getAllPosts(null);
+
     setState(() {
-      _posts.insert(0, post); // newest on top
+      _posts = rows.map((r) => Post.fromMap(r)).toList();
+      _usernames = rows.map((r) => r['username'] as String).toList();
     });
-    Navigator.pop(context);
+  }
+
+  Future<void> _addPost(Post post) async {
+    await _db.insertPost(post.toMap());
+    await _loadPosts();
+
+    if (mounted) {
+      Navigator.pop(context);
+    }
   }
 
   void _showAddPostSheet() {
@@ -25,8 +45,9 @@ class _SocialPageState extends State<SocialPage> {
       context: context,
       isScrollControlled: true,
       builder: (context) => Padding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: AddPostForm(onSave: _addPost),
       ),
     );
@@ -48,7 +69,11 @@ class _SocialPageState extends State<SocialPage> {
           itemCount: _posts.length,
           itemBuilder: (context, index) {
             final post = _posts[index];
-            return PostCard(post: post, timestampString: _formatTimestamp(post.createdAt));
+            return PostCard(
+              post: post,
+              timestampString: _formatTimestamp(post.createdAt),
+              authorName: _usernames[index],
+            );
           },
         ),
       ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/post.dart';
+import '../services/session_manager.dart';
+import 'package:provider/provider.dart';
 
 class AddPostForm extends StatefulWidget {
   final void Function(Post) onSave;
@@ -13,23 +15,27 @@ class AddPostForm extends StatefulWidget {
 class _AddPostFormState extends State<AddPostForm> {
   final _formKey = GlobalKey<FormState>();
   final _messageController = TextEditingController();
-  final _userController = TextEditingController();
 
   @override
   void dispose() {
     _messageController.dispose();
-    _userController.dispose();
     super.dispose();
   }
 
   void _save() {
+    final session = context.read<SessionManager>();
     if (_formKey.currentState!.validate()) {
+      final userId = session.currentUserId;
+      if (userId == null) {
+        return;
+      }
+
       final post = Post(
-        userId: _userController.text,
         content: _messageController.text,
         createdAt: DateTime.now(),
       );
       widget.onSave(post);
+      _messageController.clear();
     }
   }
 
@@ -47,20 +53,13 @@ class _AddPostFormState extends State<AddPostForm> {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             TextFormField(
-              controller: _userController,
-              decoration: const InputDecoration(labelText: 'Your Name'),
-              validator: (v) => v == null || v.isEmpty ? 'Enter your name' : null,
-            ),
-            TextFormField(
               controller: _messageController,
               decoration: const InputDecoration(labelText: 'Message'),
               maxLines: 3,
-              validator: (v) => v == null || v.isEmpty ? 'Enter a message' : null,
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Enter a message' : null,
             ),
-            ElevatedButton(
-              onPressed: _save,
-              child: const Text('Post'),
-            ),
+            ElevatedButton(onPressed: _save, child: const Text('Post')),
           ],
         ),
       ),
