@@ -28,7 +28,7 @@ class Comment {
       'post_id': postId,
       'remote_post_id': remotePostId,
       'content': content,
-      'created_at': createdAt.toIso8601String(),
+      'created_at': createdAt.millisecondsSinceEpoch,
     };
   }
 
@@ -41,7 +41,7 @@ class Comment {
       postId: map['post_id'],
       remotePostId: map['remote_post_id'],
       content: map['content'],
-      createdAt: DateTime.parse(['created_at'] as String),
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
     );
   }
 

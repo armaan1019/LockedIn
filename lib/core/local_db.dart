@@ -28,7 +28,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 9,
+      version: 10,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -92,6 +92,9 @@ class LocalDb {
     if (oldVersion < 9) {
       await _createPostsTable(db);
     }
+    if (oldVersion < 10) {
+      await _createCommentsTable(db);
+    }
   }
 
   // =========================
@@ -107,6 +110,24 @@ class LocalDb {
     await _createIngredientsTable(db);
     await _createUsersTable(db);
     await _createPostsTable(db);
+    await _createCommentsTable(db);
+  }
+
+  static Future<void> _createCommentsTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE comments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      remote_id TEXT UNIQUE,
+      user_id TEXT NOT NULL,
+      username TEXT NOT NULL,
+      post_id INTEGER NOT NULL,
+      remote_post_id TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      FOREIGN KEY (user_id) references users(id),
+      FOREIGN KEY (post_id) references posts(id)
+      )
+    ''');
   }
 
   static Future<void> _createPostsTable(Database db) async {
@@ -472,9 +493,7 @@ class LocalDb {
     ${before != null ? 'WHERE posts.created_at < ?' : ''}
     ORDER BY posts.created_at DESC
     LIMIT 50
-    ''', 
-    before != null ? [before] : [],
-    );
+    ''', before != null ? [before] : []);
   }
 
   Future<int> insertPost(Map<String, Object?> row) async {
@@ -506,6 +525,25 @@ class LocalDb {
       updateRow,
       where: 'id = ? AND user_id = ?',
       whereArgs: [id, userId],
+    );
+  }
+
+  // Comments CRUD
+
+  Future<int> insertComment(Map<String, Object?> row) async {
+    final database = await db;
+    row['user_id'] = userId;
+    return database.insert('comments', row);
+  }
+
+  Future<List<Map<String, Object?>>> getCommentsForPost(int postId) async{
+    final database = await db;
+    return database.query(
+      'comments', 
+      where: 'post_id = ?', 
+      whereArgs: [postId],
+      orderBy: 'create_at DESC',
+      limit: 50,
     );
   }
 }
