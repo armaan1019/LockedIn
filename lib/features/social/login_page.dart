@@ -51,7 +51,7 @@ class _LoginPageState extends State<LoginPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  "LockedIn",
+                  "Locked In",
                   style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold),
                 ),
 
