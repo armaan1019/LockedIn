@@ -2,6 +2,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../features/workout/models/workout.dart';
 import '../features/social/services/auth_service.dart';
+import '../features/social/models/comment.dart';
 
 class LocalDb {
   static final LocalDb instance = LocalDb._();
@@ -544,15 +545,17 @@ class LocalDb {
     return database.insert('comments', row);
   }
 
-  Future<List<Map<String, Object?>>> getCommentsForPost(int postId) async {
+  Future<List<Comment>> getCommentsByPostId(int postId) async {
     final database = await db;
-    return database.query(
+    final rows = await database.query(
       'comments',
       where: 'post_id = ?',
       whereArgs: [postId],
       orderBy: 'created_at DESC',
       limit: 50,
     );
+
+    return rows.map((r) => Comment.fromMap(r)).toList();
   }
 
   //Get users

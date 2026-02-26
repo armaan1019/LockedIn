@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import '../../../core/local_db.dart';
+import 'package:provider/provider.dart';
+import '../models/comment.dart';
+import '../repositories/comment_repository.dart';
+import '../services/session_manager.dart';
 
 class CommentsSheet extends StatefulWidget {
   final int postId;
@@ -13,8 +16,9 @@ class CommentsSheet extends StatefulWidget {
 
 class _CommentsSheetState extends State<CommentsSheet> {
   final TextEditingController _controller = TextEditingController();
+  final _repo = CommentRepository();
 
-  List<Map<String, Object?>> comments = [];
+  List<Comment> comments = [];
 
   @override
   void initState() {
@@ -34,7 +38,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
   }
 
   Future<void> _loadComments() async {
-    final rows = await LocalDb.instance.getCommentsForPost(widget.postId);
+    final rows = await _repo.getPostComments(widget.postId);
 
     setState(() {
       comments = rows;
@@ -42,19 +46,13 @@ class _CommentsSheetState extends State<CommentsSheet> {
   }
 
   Future<void> _addComment() async {
+    final session = context.read<SessionManager>();
     final text = _controller.text.trim();
-    final username = await LocalDb.instance.getCurrentUsername();
     if (text.isEmpty) return;
 
-    await LocalDb.instance.insertComment({
-      'post_id': widget.postId,
-      'username': username,
-      'content': text,
-      'created_at': DateTime.now().millisecondsSinceEpoch,
-    });
+    await _repo.addComment(widget.postId, text, session.currentUserId!);
 
     _controller.clear();
-
     await _loadComments();
   }
 
@@ -84,10 +82,10 @@ class _CommentsSheetState extends State<CommentsSheet> {
                     final comment = comments[index];
 
                     return ListTile(
-                      title: Text(comment['username'] as String),
-                      subtitle: Text(comment['content'] as String),
+                      title: Text(comment.username),
+                      subtitle: Text(comment.content),
                       trailing: Text(
-                        timeAgo(comment['created_at'] as int),
+                        timeAgo(comment.createdAt.millisecondsSinceEpoch),
                         style: TextStyle(color: Colors.grey, fontSize: 12),
                       ),
                     );
