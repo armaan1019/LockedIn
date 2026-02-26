@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/post.dart';
+import 'comments_sheet.dart';
 
 class PostCard extends StatelessWidget {
   final Post post;
@@ -12,6 +13,31 @@ class PostCard extends StatelessWidget {
     required this.timestampString,
     required this.authorName,
   });
+
+  void _openComments(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.5,
+          minChildSize: 0.3,
+          maxChildSize: 0.9,
+          expand: false,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: CommentsSheet(postId: post.id!),
+            );
+          },
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -40,14 +66,20 @@ class PostCard extends StatelessWidget {
             Text(post.content),
             const SizedBox(height: 12),
             Row(
-              children: const [
+              children: [
                 Icon(Icons.thumb_up, size: 16, color: Colors.grey),
                 SizedBox(width: 4),
                 Text('Like', style: TextStyle(color: Colors.grey)),
                 SizedBox(width: 16),
                 Icon(Icons.comment, size: 16, color: Colors.grey),
                 SizedBox(width: 4),
-                Text('Comment', style: TextStyle(color: Colors.grey)),
+                TextButton(
+                  onPressed: () => _openComments(context),
+                  child: const Text(
+                    'Comment',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                ),
               ],
             ),
           ],
