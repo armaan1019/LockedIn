@@ -6,9 +6,8 @@ import '../services/session_manager.dart';
 
 class CommentsSheet extends StatefulWidget {
   final int postId;
-  final VoidCallback? onAddPressed;
 
-  const CommentsSheet({super.key, required this.postId, this.onAddPressed});
+  const CommentsSheet({super.key, required this.postId,});
 
   @override
   State<CommentsSheet> createState() => _CommentsSheetState();
