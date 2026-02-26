@@ -28,7 +28,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 10,
+      version: 12,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -95,6 +95,14 @@ class LocalDb {
     if (oldVersion < 10) {
       await _createCommentsTable(db);
     }
+    if (oldVersion < 11) {
+      await db.execute('DROP TABLE IF EXISTS comments');
+      await _createCommentsTable(db);
+    }
+    if (oldVersion < 12) {
+      await db.execute('DROP TABLE IF EXISTS comments');
+      await _createCommentsTable(db);
+    }
   }
 
   // =========================
@@ -121,7 +129,7 @@ class LocalDb {
       user_id TEXT NOT NULL,
       username TEXT NOT NULL,
       post_id INTEGER NOT NULL,
-      remote_post_id TEXT NOT NULL,
+      remote_post_id TEXT,
       content TEXT NOT NULL,
       created_at INTEGER NOT NULL,
       FOREIGN KEY (user_id) references users(id),
@@ -536,14 +544,34 @@ class LocalDb {
     return database.insert('comments', row);
   }
 
-  Future<List<Map<String, Object?>>> getCommentsForPost(int postId) async{
+  Future<List<Map<String, Object?>>> getCommentsForPost(int postId) async {
     final database = await db;
     return database.query(
-      'comments', 
-      where: 'post_id = ?', 
+      'comments',
+      where: 'post_id = ?',
       whereArgs: [postId],
-      orderBy: 'create_at DESC',
+      orderBy: 'created_at DESC',
       limit: 50,
     );
+  }
+
+  //Get users
+
+  Future<String> getCurrentUsername() async {
+    final database = await db;
+
+    final result = await database.query(
+      'users',
+      columns: ['username'],
+      where: 'id = ?',
+      whereArgs: [userId],
+      limit: 1,
+    );
+
+    if (result.isEmpty) {
+      throw Exception("User not found");
+    }
+
+    return result.first['username'] as String;
   }
 }
