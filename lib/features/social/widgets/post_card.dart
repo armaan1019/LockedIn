@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../models/post.dart';
 import 'comments_sheet.dart';
+import '../repositories/like_repository.dart';
 
-class PostCard extends StatelessWidget {
+class PostCard extends StatefulWidget {
   final Post post;
   final String timestampString;
   final String authorName;
@@ -13,6 +14,43 @@ class PostCard extends StatelessWidget {
     required this.timestampString,
     required this.authorName,
   });
+
+  @override
+  State<PostCard> createState() => _PostCardState();
+}
+
+class _PostCardState extends State<PostCard> {
+  bool _liked = false;
+  final _likesRepo = LikeRepository();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLikeState();
+  }
+
+  Future<void> _loadLikeState() async {
+    final postId = widget.post.id;
+    if (postId == null) return;
+
+    final liked = await _likesRepo.isPostLiked(postId);
+
+    if (!mounted) return;
+
+    setState(() {
+      _liked = liked;
+    });
+  }
+
+  Future<void> _toggleLike(int? postId) async {
+    if (postId == null) return;
+
+    await _likesRepo.toggleLike(postId);
+
+    setState(() {
+      _liked = !_liked;
+    });
+  }
 
   void _openComments(BuildContext context) {
     showModalBottomSheet(
@@ -31,7 +69,7 @@ class PostCard extends StatelessWidget {
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: CommentsSheet(postId: post.id!),
+              child: CommentsSheet(postId: widget.post.id!),
             );
           },
         );
@@ -53,23 +91,28 @@ class PostCard extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  authorName,
+                  widget.authorName,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  timestampString,
+                  widget.timestampString,
                   style: const TextStyle(color: Colors.grey, fontSize: 12),
                 ),
               ],
             ),
             const SizedBox(height: 8),
-            Text(post.content),
+            Text(widget.post.content),
             const SizedBox(height: 12),
             Row(
               children: [
-                Icon(Icons.thumb_up, size: 16, color: Colors.grey),
-                SizedBox(width: 4),
-                Text('Like', style: TextStyle(color: Colors.grey)),
+                GestureDetector(
+                  onTap: () => _toggleLike(widget.post.id),
+                  child: Icon(
+                    _liked ? Icons.favorite : Icons.favorite_border,
+                    size: 16,
+                    color: _liked ? Colors.red : Colors.grey,
+                  ),
+                ),
                 SizedBox(width: 16),
                 Icon(Icons.comment, size: 16, color: Colors.grey),
                 SizedBox(width: 4),

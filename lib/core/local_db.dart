@@ -29,7 +29,7 @@ class LocalDb {
 
     _db = await openDatabase(
       path,
-      version: 12,
+      version: 13,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -104,6 +104,9 @@ class LocalDb {
       await db.execute('DROP TABLE IF EXISTS comments');
       await _createCommentsTable(db);
     }
+    if (oldVersion < 13) {
+      await _createLikesTable(db);
+    }
   }
 
   // =========================
@@ -120,6 +123,21 @@ class LocalDb {
     await _createUsersTable(db);
     await _createPostsTable(db);
     await _createCommentsTable(db);
+    await _createLikesTable(db);
+  }
+
+  static Future<void> _createLikesTable(Database db) async {
+    await db.execute('''
+      CREATE TABLE likes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        remote_id TEXT,
+        post_id INTEGER NOT NULL,
+        user_id TEXT NOT NULL,
+        FOREIGN KEY (post_id) references posts(id),
+        FOREIGN KEY (user_id) references users(id),
+        UNIQUE(post_id, user_id)
+      )
+    ''');
   }
 
   static Future<void> _createCommentsTable(Database db) async {
@@ -576,5 +594,36 @@ class LocalDb {
     }
 
     return result.first['username'] as String;
+  }
+
+  //Likes Crud
+
+  Future<bool> isPostLiked(int postId) async {
+    final database = await db;
+
+    final result = await database.query(
+      'likes',
+      where: 'post_id = ? AND user_id = ?',
+      whereArgs: [postId, userId],
+      limit: 1,
+    );
+
+    return result.isNotEmpty;
+  }
+
+  Future<int> insertLike(int postId) async {
+    final database = await db;
+
+    return database.insert('likes', {'post_id': postId, 'user_id': userId});
+  }
+
+  Future<int> deleteLike(int postId) async {
+    final database = await db;
+
+    return database.delete(
+      'likes',
+      where: 'post_id = ? AND user_id = ?',
+      whereArgs: [postId, userId],
+    );
   }
 }
