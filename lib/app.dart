@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'navigation/app_shell.dart';
-import 'features/social/login_page.dart';
+import 'features/social/pages/login_page.dart';
 import 'features/social/services/session_manager.dart';
 import 'package:provider/provider.dart';
 

@@ -3,7 +3,7 @@ import '../core/widgets/bottom_nav.dart';
 import '../features/dashboard/dashboard_page.dart';
 import '../features/workout/workout_page.dart';
 import '../features/diet/diet_page.dart';
-import '../features/social/social_feed_page.dart';
+import '../features/social/pages/social_feed_page.dart';
 import '../features/settings/settings_page.dart';
 
 class AppShell extends StatefulWidget {

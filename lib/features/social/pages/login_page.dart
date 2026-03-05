@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'services/session_manager.dart';
+import '../services/session_manager.dart';
 import 'package:provider/provider.dart';
 import 'signup_page.dart';
 
