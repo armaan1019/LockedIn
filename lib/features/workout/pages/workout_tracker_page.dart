@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'workout_summary_page.dart';
-import 'models/workout.dart';
-import '../../core/local_db.dart';
+import '../models/workout.dart';
+import '../../../core/database/local_db.dart';
 
 class WorkoutTrackerPage extends StatefulWidget {
   final Workout workout;

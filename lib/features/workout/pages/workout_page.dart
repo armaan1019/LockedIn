@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'workout_tracker_page.dart';
-import 'models/workout.dart';
-import 'widgets/add_workout_form.dart';
-import 'widgets/workout_card.dart';
-import '../../core/local_db.dart';
-import 'widgets/past_workout_sheet.dart';
+import '../models/workout.dart';
+import '../widgets/add_workout_form.dart';
+import '../widgets/workout_card.dart';
+import '../../../core/database/local_db.dart';
+import '../widgets/past_workout_sheet.dart';
 
 class WorkoutPage extends StatefulWidget {
   const WorkoutPage({super.key});

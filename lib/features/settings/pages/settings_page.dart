@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../social/services/session_manager.dart';
+import '../../social/services/session_manager.dart';
 import 'package:provider/provider.dart';
 
 class SettingsPage extends StatelessWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/post_card.dart';
 import '../widgets/add_post_form.dart';
 import '../models/post.dart';
-import '../../../core/local_db.dart';
+import '../../../core/database/local_db.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});

@@ -1,5 +1,5 @@
 import '../models/user.dart';
-import '../../../core/local_db.dart';
+import '../../../core/database/local_db.dart';
 import 'package:uuid/uuid.dart';
 
 class AuthService {

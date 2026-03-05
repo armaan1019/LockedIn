@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'models/food.dart';
+import '../models/food.dart';
 
 class AddIngredientPage extends StatefulWidget {
   final Food food;

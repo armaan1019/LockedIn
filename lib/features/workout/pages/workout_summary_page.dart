@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'models/workout.dart';
-import '../../core/local_db.dart';
+import '../models/workout.dart';
+import '../../../core/database/local_db.dart';
 
 class WorkoutSummaryPage extends StatefulWidget {
   final WorkoutSession session;

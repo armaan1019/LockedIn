@@ -1,4 +1,4 @@
-import '../../../core/local_db.dart';
+import '../../../core/database/local_db.dart';
 import '../models/comment.dart';
 
 class CommentRepository {

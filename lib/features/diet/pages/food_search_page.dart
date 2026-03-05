@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'services/food_api.dart';
-import 'models/food.dart';
+import '../services/food_api.dart';
+import '../models/food.dart';
 import 'add_ingredient_page.dart';
 
 class FoodSearchPage extends StatefulWidget {

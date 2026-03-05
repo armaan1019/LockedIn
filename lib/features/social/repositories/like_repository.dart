@@ -1,4 +1,4 @@
-import '../../../core/local_db.dart';
+import '../../../core/database/local_db.dart';
 
 class LikeRepository {
   final _db = LocalDb.instance;

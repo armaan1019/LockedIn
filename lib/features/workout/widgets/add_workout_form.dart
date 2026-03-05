@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
 import 'exercise_input.dart';
-import '../../../core/local_db.dart';
+import '../../../core/database/local_db.dart';
 
 class AddWorkoutForm extends StatefulWidget {
   final void Function(Workout) onSave;

@@ -1,8 +1,8 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import '../features/workout/models/workout.dart';
-import '../features/social/services/auth_service.dart';
-import '../features/social/models/comment.dart';
+import '../../features/workout/models/workout.dart';
+import '../../features/social/services/auth_service.dart';
+import '../../features/social/models/comment.dart';
 
 class LocalDb {
   static final LocalDb instance = LocalDb._();

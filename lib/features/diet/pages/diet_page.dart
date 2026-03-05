@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'services/food_api.dart';
-import 'models/food.dart';
+import '../services/food_api.dart';
+import '../models/food.dart';
 import 'barcode_scanner_page.dart';
 import 'saved_meals_page.dart';
-import 'widgets/meal_card.dart';
-import 'widgets/macro_info.dart';
-import 'widgets/create_meal_form.dart';
-import '../../core/local_db.dart';
+import '../widgets/meal_card.dart';
+import '../widgets/macro_info.dart';
+import '../widgets/create_meal_form.dart';
+import '../../../core/database/local_db.dart';
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
