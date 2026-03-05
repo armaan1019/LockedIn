@@ -1,24 +1,26 @@
 import '../../features/social/models/user.dart';
-import '../database/local_db.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 
 class AuthService {
   AuthService._();
   static final instance = AuthService._();
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String? _currentUserId;
   String? get currentUserId => _currentUserId;
-  Future<AppUser?> login(String username, String password) async {
-    final db = await LocalDb.instance.db;
-    final result = await db.query(
-      'users',
-      where: 'username = ? AND password = ?',
-      whereArgs: [username, password],
-      limit: 1,
-    );
 
-    if (result.isEmpty) return null;
-    final user = AppUser.fromMap(result.first);
+  Future<AppUser?> login(String username, String password) async {
+    final query = await _firestore
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .where('password', isEqualTo: password)
+        .limit(1)
+        .get();
+
+    if (query.docs.isEmpty) return null;
+    final doc = query.docs.first;
+    final user = AppUser.fromMap(doc.id, doc.data());
     _currentUserId = user.id;
     return user;
   }
@@ -28,22 +30,23 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final db = await LocalDb.instance.db;
-
-    final existing = await db.query(
-      'users',
-      where: 'username = ?',
-      whereArgs: [username],
-    );
-    if (existing.isNotEmpty) {
+    final existing = await _firestore
+        .collection('users')
+        .where('username', isEqualTo: username)
+        .limit(1)
+        .get();
+    if (existing.docs.isNotEmpty) {
       return null; // username taken
     }
 
     const uuid = Uuid();
     final id = uuid.v6();
-
     final user = AppUser(id: id, username: username, email: email);
-    await db.insert('users', user.toMap());
+
+    await _firestore.collection('users').doc(id).set({
+      ...user.toMap(), 
+      password: password,
+    });
     _currentUserId = id;
     return user;
   }
