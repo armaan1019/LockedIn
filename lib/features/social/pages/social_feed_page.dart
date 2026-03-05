@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/post_card.dart';
 import '../widgets/add_post_form.dart';
 import '../models/post.dart';
-import '../../../core/database/local_db.dart';
+import '../repositories/post_repository.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -14,26 +14,19 @@ class SocialPage extends StatefulWidget {
 class _SocialPageState extends State<SocialPage> {
   List<Post> _posts = [];
   List<String> _usernames = [];
-  final _db = LocalDb.instance;
+  final _postRepo = PostRepository();
 
   @override
   void initState() {
     super.initState();
-    _loadPosts();
-  }
-
-  Future<void> _loadPosts() async {
-    final rows = await _db.getAllPosts(null);
-
-    setState(() {
-      _posts = rows.map((r) => Post.fromMap(r)).toList();
-      _usernames = rows.map((r) => r['username'] as String).toList();
-    });
   }
 
   Future<void> _addPost(Post post) async {
-    await _db.insertPost(post.toMap());
-    await _loadPosts();
+    await _postRepo.addPost(
+      userId: post.userId,
+      username: post.username,
+      content: post.content,
+    );
 
     if (mounted) {
       Navigator.pop(context);
@@ -64,15 +57,30 @@ class _SocialPageState extends State<SocialPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: _posts.length,
-          itemBuilder: (context, index) {
-            final post = _posts[index];
-            return PostCard(
-              post: post,
-              timestampString: _formatTimestamp(post.createdAt),
-              authorName: _usernames[index],
+        child: StreamBuilder<List<Post>>(
+          stream: _postRepo.getPosts(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final post = snapshot.data ?? [];
+
+            if (post.isEmpty) {
+              return const Center(child: Text('No posts yet'));
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: _posts.length,
+              itemBuilder: (context, index) {
+                final post = _posts[index];
+                return PostCard(
+                  post: post,
+                  timestampString: _formatTimestamp(post.createdAt),
+                  authorName: _usernames[index],
+                );
+              },
             );
           },
         ),

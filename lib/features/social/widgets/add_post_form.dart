@@ -25,12 +25,15 @@ class _AddPostFormState extends State<AddPostForm> {
   void _save() {
     final session = context.read<SessionManager>();
     if (_formKey.currentState!.validate()) {
-      final userId = session.currentUserId;
-      if (userId == null) {
+      final user = session.currentUser;
+      if (user == null) {
         return;
       }
 
       final post = Post(
+        id: '',
+        userId: user.id,
+        username: user.username,
         content: _messageController.text,
         createdAt: DateTime.now(),
       );
