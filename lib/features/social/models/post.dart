@@ -1,31 +1,26 @@
 class Post {
-  final int? id;
-  final String? remoteId;
+  final String id;
   final String content;
   final DateTime createdAt;
 
   Post({
-    this.id,
-    this.remoteId,
+    required this.id,
     required this.content,
     required this.createdAt,
   });
 
-  factory Post.fromMap(Map<String, dynamic> map) {
+  factory Post.fromMap(String id, Map<String, dynamic> map) {
     return Post(
-      id: map['id'],
-      remoteId: map['remote_id'],
+      id: id,
       content: map['content'],
-      createdAt: DateTime.parse(map['created_at']),
+      createdAt: map['createdAt'],
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'remote_id': remoteId,
       'content': content,
-      'created_at': createdAt.toIso8601String(),
+      'createdAt': createdAt,
     };
   }
 }

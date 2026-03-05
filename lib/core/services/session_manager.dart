@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../models/user.dart';
+import '../../features/social/models/user.dart';
 import 'auth_service.dart';
 
 class SessionManager extends ChangeNotifier {
-  User? _currentUser;
+  AppUser? _currentUser;
 
-  User? get currentUser => _currentUser;
+  AppUser? get currentUser => _currentUser;
   String? get currentUserId => _currentUser?.id;
   bool get isLoggedIn => _currentUser != null;
 

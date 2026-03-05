@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/session_manager.dart';
+import '../../../core/services/session_manager.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});

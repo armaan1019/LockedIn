@@ -1,4 +1,4 @@
-import '../../../core/database/local_db.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/comment.dart';
 
 class CommentRepository {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/comment.dart';
 import '../repositories/comment_repository.dart';
-import '../services/session_manager.dart';
+import '../../../core/services/session_manager.dart';
 
 class CommentsSheet extends StatefulWidget {
   final int postId;

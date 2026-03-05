@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/post.dart';
-import '../services/session_manager.dart';
+import '../../../core/services/session_manager.dart';
 import 'package:provider/provider.dart';
 
 class AddPostForm extends StatefulWidget {

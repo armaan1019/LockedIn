@@ -1,5 +1,5 @@
-import '../models/user.dart';
-import '../../../core/database/local_db.dart';
+import '../../features/social/models/user.dart';
+import '../database/local_db.dart';
 import 'package:uuid/uuid.dart';
 
 class AuthService {
@@ -8,7 +8,7 @@ class AuthService {
 
   String? _currentUserId;
   String? get currentUserId => _currentUserId;
-  Future<User?> login(String username, String password) async {
+  Future<AppUser?> login(String username, String password) async {
     final db = await LocalDb.instance.db;
     final result = await db.query(
       'users',
@@ -18,12 +18,12 @@ class AuthService {
     );
 
     if (result.isEmpty) return null;
-    final user = User.fromMap(result.first);
+    final user = AppUser.fromMap(result.first);
     _currentUserId = user.id;
     return user;
   }
 
-  Future<User?> signUp({
+  Future<AppUser?> signUp({
     required String username,
     required String email,
     required String password,
@@ -42,7 +42,7 @@ class AuthService {
     const uuid = Uuid();
     final id = uuid.v6();
 
-    final user = User(id: id, username: username, email: email, password: password);
+    final user = AppUser(id: id, username: username, email: email, password: password);
     await db.insert('users', user.toMap());
     _currentUserId = id;
     return user;

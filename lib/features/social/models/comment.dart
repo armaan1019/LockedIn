@@ -1,67 +1,54 @@
 class Comment {
-  final int? id;
-  final String? remoteId;
+  final String id;
   final String userId;
   final String username;
-  final int postId;
-  final String? remotePostId;
+  final String postId;
   final String content;
   final DateTime createdAt;
 
   Comment({
-    this.id,
-    this.remoteId,
+    required this.id,
     required this.userId,
     required this.username,
     required this.postId,
-    this.remotePostId,
     required this.content,
     required this.createdAt,
   });
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
-      'remote_id': remoteId,
-      'user_id': userId,
+      'userId': userId,
       'username': username,
-      'post_id': postId,
-      'remote_post_id': remotePostId,
+      'postId': postId,
       'content': content,
-      'created_at': createdAt.millisecondsSinceEpoch,
+      'createdAt': createdAt,
     };
   }
 
-  factory Comment.fromMap(Map<String, dynamic> map) {
+  factory Comment.fromMap(String id, Map<String, dynamic> map) {
     return Comment(
-      id: map['id'],
-      remoteId: map['remote_id'],
-      userId: map['user_id'],
+      id: id,
+      userId: map['userId'],
       username: map['username'],
-      postId: map['post_id'],
-      remotePostId: map['remote_post_id'],
+      postId: map['postId'],
       content: map['content'],
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['created_at'] as int),
+      createdAt: map['createdAt'],
     );
   }
 
   Comment copyWith({
-    int? id,
-    String? remoteId,
+    String? id,
     String? userId,
     String? username,
-    int? postId,
-    String? remotePostId,
+    String? postId,
     String? content,
     DateTime? createdAt,
   }) {
     return Comment(
       id: id ?? this.id,
-      remoteId: remoteId ?? this.remoteId,
       userId: userId ?? this.userId,
       username: username ?? this.username,
       postId: postId ?? this.postId,
-      remotePostId: remotePostId ?? this.remotePostId,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
     );
