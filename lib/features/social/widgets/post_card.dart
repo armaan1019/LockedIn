@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/post.dart';
 import 'comments_sheet.dart';
 import '../repositories/like_repository.dart';
+import '../../../core/services/session_manager.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -26,14 +28,20 @@ class _PostCardState extends State<PostCard> {
   @override
   void initState() {
     super.initState();
-    _loadLikeState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadLikeState();
+    });
   }
 
   Future<void> _loadLikeState() async {
-    final postId = widget.post.id;
-    if (postId == null) return;
+    final session = context.read<SessionManager>();
+    final userId = session.currentUserId;
+    if (userId == null) return;
 
-    final liked = await _likesRepo.isPostLiked(postId);
+    final liked = await _likesRepo.isPostLiked(
+      postId: widget.post.id,
+      userId: userId,
+    );
 
     if (!mounted) return;
 
@@ -42,14 +50,19 @@ class _PostCardState extends State<PostCard> {
     });
   }
 
-  Future<void> _toggleLike(int? postId) async {
-    if (postId == null) return;
+  Future<void> _toggleLike() async {
+    final session = context.read<SessionManager>();
+    final userId = session.currentUserId;
+    if (userId == null) return;
 
-    await _likesRepo.toggleLike(postId);
-
-    setState(() {
-      _liked = !_liked;
-    });
+    try {
+      await _likesRepo.toggleLike(postId: widget.post.id, userId: userId);
+      setState(() => _liked = !_liked);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to like post. Please try again')),
+      );
+    }
   }
 
   void _openComments(BuildContext context) {
@@ -69,7 +82,7 @@ class _PostCardState extends State<PostCard> {
                 color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: CommentsSheet(postId: widget.post.id!),
+              child: CommentsSheet(postId: widget.post.id),
             );
           },
         );
@@ -106,7 +119,7 @@ class _PostCardState extends State<PostCard> {
             Row(
               children: [
                 GestureDetector(
-                  onTap: () => _toggleLike(widget.post.id),
+                  onTap: () => _toggleLike(),
                   child: Icon(
                     _liked ? Icons.favorite : Icons.favorite_border,
                     size: 16,

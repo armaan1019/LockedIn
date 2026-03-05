@@ -5,9 +5,9 @@ import '../repositories/comment_repository.dart';
 import '../../../core/services/session_manager.dart';
 
 class CommentsSheet extends StatefulWidget {
-  final int postId;
+  final String postId;
 
-  const CommentsSheet({super.key, required this.postId,});
+  const CommentsSheet({super.key, required this.postId});
 
   @override
   State<CommentsSheet> createState() => _CommentsSheetState();
@@ -22,26 +22,22 @@ class _CommentsSheetState extends State<CommentsSheet> {
   @override
   void initState() {
     super.initState();
-    _loadComments();
   }
 
-  String timeAgo(int timestamp) {
-    final commentTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-    final diff = DateTime.now().difference(commentTime);
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  String timeAgo(DateTime createdAt) {
+    final diff = DateTime.now().difference(createdAt);
 
     if (diff.inSeconds < 60) return '${diff.inSeconds}s ago';
     if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
     if (diff.inHours < 24) return '${diff.inHours}h ago';
     if (diff.inDays < 7) return '${diff.inDays}d ago';
-    return '${commentTime.month}/${commentTime.day}/${commentTime.year}';
-  }
-
-  Future<void> _loadComments() async {
-    final rows = await _repo.getPostComments(widget.postId);
-
-    setState(() {
-      comments = rows;
-    });
+    return '${createdAt.month}/${createdAt.day}/${createdAt.year}';
   }
 
   Future<void> _addComment() async {
@@ -49,10 +45,14 @@ class _CommentsSheetState extends State<CommentsSheet> {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    await _repo.addComment(widget.postId, text, session.currentUserId!);
+    await _repo.addComment(
+      postId: widget.postId,
+      content: text,
+      userId: session.currentUserId!,
+      username: session.currentUser!.username,
+    );
 
     _controller.clear();
-    await _loadComments();
   }
 
   @override
@@ -72,9 +72,19 @@ class _CommentsSheetState extends State<CommentsSheet> {
 
         /// comments list
         Expanded(
-          child: comments.isEmpty
-              ? const Center(child: Text("No comments yet"))
-              : ListView.builder(
+          child: StreamBuilder<List<Comment>>(
+            stream: _repo.getPostComments(widget.postId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              final comments = snapshot.data ?? [];
+
+              if (comments.isEmpty) {
+                return const Center(child: Text('No Comments yet'));
+              } else {
+                return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: comments.length,
                   itemBuilder: (context, index) {
@@ -84,12 +94,18 @@ class _CommentsSheetState extends State<CommentsSheet> {
                       title: Text(comment.username),
                       subtitle: Text(comment.content),
                       trailing: Text(
-                        timeAgo(comment.createdAt.millisecondsSinceEpoch),
-                        style: TextStyle(color: Colors.grey, fontSize: 12),
+                        timeAgo(comment.createdAt),
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
                       ),
                     );
                   },
-                ),
+                );
+              }
+            },
+          ),
         ),
 
         /// add comment input

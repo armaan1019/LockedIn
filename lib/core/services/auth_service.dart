@@ -42,7 +42,7 @@ class AuthService {
     const uuid = Uuid();
     final id = uuid.v6();
 
-    final user = AppUser(id: id, username: username, email: email, password: password);
+    final user = AppUser(id: id, username: username, email: email);
     await db.insert('users', user.toMap());
     _currentUserId = id;
     return user;

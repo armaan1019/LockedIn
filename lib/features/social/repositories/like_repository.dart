@@ -1,19 +1,53 @@
-import '../../../core/database/local_db.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class LikeRepository {
-  final _db = LocalDb.instance;
+  final FirebaseFirestore _firestore;
 
-  Future<void> toggleLike(int postId) async {
-    final liked = await _db.isPostLiked(postId);
+  LikeRepository({FirebaseFirestore? firestore})
+    : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  Future<void> toggleLike({
+    required String postId,
+    required String userId,
+  }) async {
+    final likeDocRef = _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .doc(userId);
+
+    final liked = await isPostLiked(postId: postId, userId: userId);
 
     if (liked) {
-      await _db.deleteLike(postId);
+      await likeDocRef.delete();
     } else {
-      await _db.insertLike(postId);
+      await likeDocRef.set({
+        'userId': userId,
+        'createdAt': DateTime.now().millisecondsSinceEpoch,
+      });
     }
   }
 
-  Future<bool> isPostLiked(int postId) {
-    return _db.isPostLiked(postId);
+  Future<bool> isPostLiked({
+    required String postId,
+    required String userId,
+  }) async {
+    final likeDocRef = _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .doc(userId);
+
+    final snapshot = await likeDocRef.get();
+    return snapshot.exists;
+  }
+
+  Stream<int> getPostLikesCount(String postId) {
+    return _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('likes')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
   }
 }
