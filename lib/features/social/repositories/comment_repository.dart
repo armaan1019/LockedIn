@@ -48,4 +48,13 @@ class CommentRepository {
         .doc(comment.id)
         .set(comment.toMap());
   }
+
+  Stream<int> getTotalCommentsForPost(String postId) {
+    return _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('comments')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
 }

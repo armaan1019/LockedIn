@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/post.dart';
 import 'comments_sheet.dart';
 import '../repositories/like_repository.dart';
+import '../repositories/comment_repository.dart';
 import '../../../core/services/session_manager.dart';
 
 class PostCard extends StatefulWidget {
@@ -24,6 +25,7 @@ class PostCard extends StatefulWidget {
 class _PostCardState extends State<PostCard> {
   bool _liked = false;
   final _likesRepo = LikeRepository();
+  final _commentsRepo = CommentRepository();
 
   @override
   void initState() {
@@ -124,15 +126,32 @@ class _PostCardState extends State<PostCard> {
                     color: _liked ? Colors.red : Colors.grey,
                   ),
                 ),
+                const SizedBox(width: 4),
+                StreamBuilder<int>(
+                  stream: _likesRepo.getPostLikesCount(widget.post.id),
+                  initialData: 0,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data ?? 0;
+                    return Text('$count');
+                  },
+                ),
                 SizedBox(width: 16),
-                Icon(Icons.comment, size: 16, color: Colors.grey),
-                SizedBox(width: 4),
-                TextButton(
-                  onPressed: () => _openComments(context),
-                  child: const Text(
-                    'Comment',
-                    style: TextStyle(color: Colors.grey),
+                GestureDetector(
+                  onTap: () => _openComments(context),
+                  child: const Icon(
+                    Icons.comment,
+                    size: 16,
+                    color: Colors.grey,
                   ),
+                ),
+                const SizedBox(width: 4),
+                StreamBuilder<int>(
+                  stream: _commentsRepo.getTotalCommentsForPost(widget.post.id),
+                  initialData: 0,
+                  builder: (context, snapshot) {
+                    final count = snapshot.data ?? 0;
+                    return Text('$count');
+                  },
                 ),
               ],
             ),
