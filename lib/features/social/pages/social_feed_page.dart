@@ -12,8 +12,6 @@ class SocialPage extends StatefulWidget {
 }
 
 class _SocialPageState extends State<SocialPage> {
-  List<Post> _posts = [];
-  List<String> _usernames = [];
   final _postRepo = PostRepository();
 
   @override
@@ -64,21 +62,22 @@ class _SocialPageState extends State<SocialPage> {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final post = snapshot.data ?? [];
+            final posts = snapshot.data ?? [];
 
-            if (post.isEmpty) {
+            if (posts.isEmpty) {
               return const Center(child: Text('No posts yet'));
             }
 
             return ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: _posts.length,
+              itemCount: posts.length,
               itemBuilder: (context, index) {
-                final post = _posts[index];
+                final post = posts[index];
                 return PostCard(
+                  key: ValueKey(post.id),
                   post: post,
                   timestampString: _formatTimestamp(post.createdAt),
-                  authorName: _usernames[index],
+                  authorName: post.username,
                 );
               },
             );

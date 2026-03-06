@@ -28,9 +28,7 @@ class _PostCardState extends State<PostCard> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadLikeState();
-    });
+    _loadLikeState();
   }
 
   Future<void> _loadLikeState() async {

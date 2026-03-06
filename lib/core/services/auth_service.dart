@@ -1,28 +1,35 @@
 import '../../features/social/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:uuid/uuid.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthService {
   AuthService._();
   static final instance = AuthService._();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  String? _currentUserId;
-  String? get currentUserId => _currentUserId;
+  String? get currentUserId => _auth.currentUser?.uid;
 
   Future<AppUser?> login(String username, String password) async {
-    final query = await _firestore
-        .collection('users')
-        .where('username', isEqualTo: username)
-        .where('password', isEqualTo: password)
-        .limit(1)
+    final usernameDoc = await _firestore
+        .collection('usernames')
+        .doc(username)
         .get();
 
-    if (query.docs.isEmpty) return null;
-    final doc = query.docs.first;
-    final user = AppUser.fromMap(doc.id, doc.data());
-    _currentUserId = user.id;
-    return user;
+    if (!usernameDoc.exists) return null;
+
+    final email = usernameDoc.data()!['email'];
+
+    final cred = await _auth.signInWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+
+    final uid = cred.user!.uid;
+
+    final userDoc = await _firestore.collection('users').doc(uid).get();
+
+    return AppUser.fromMap(uid, userDoc.data()!);
   }
 
   Future<AppUser?> signUp({
@@ -30,28 +37,42 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-    final existing = await _firestore
-        .collection('users')
-        .where('username', isEqualTo: username)
-        .limit(1)
-        .get();
-    if (existing.docs.isNotEmpty) {
-      return null; // username taken
+    try {
+      final usernameDoc = await _firestore
+          .collection('usernames')
+          .doc(username)
+          .get();
+
+      if (usernameDoc.exists) {
+        throw Exception("Username already taken");
+      }
+
+      final cred = await _auth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final uid = cred.user!.uid;
+
+      final user = AppUser(id: uid, username: username, email: email);
+
+      final batch = _firestore.batch();
+
+      batch.set(_firestore.collection('users').doc(uid), user.toMap());
+      batch.set(_firestore.collection('usernames').doc(username), {
+        'uid': uid,
+        'email': email,
+      });
+
+      await batch.commit();
+      return user;
+    } catch (e) {
+      print("SIGN UP ERROR: $e");
+      rethrow;
     }
-
-    const uuid = Uuid();
-    final id = uuid.v6();
-    final user = AppUser(id: id, username: username, email: email);
-
-    await _firestore.collection('users').doc(id).set({
-      ...user.toMap(), 
-      password: password,
-    });
-    _currentUserId = id;
-    return user;
   }
 
-  void logout() {
-    _currentUserId = null;
+  Future<void> logout() async {
+    await _auth.signOut();
   }
 }
