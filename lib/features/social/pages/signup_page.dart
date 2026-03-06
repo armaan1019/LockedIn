@@ -50,7 +50,7 @@ class _SignUpPageState extends State<SignUpPage> {
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Account created successfully. Please log in.")),
+        const SnackBar(content: Text("Account created successfully.")),
       );
 
       Navigator.pop(context);
