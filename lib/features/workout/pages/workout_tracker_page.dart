@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'workout_summary_page.dart';
 import '../models/workout.dart';
+import '../models/workout_session.dart';
+import '../models/set_entry.dart';
+import '../models/exercise_session.dart';
 import '../../../core/database/local_db.dart';
 
 class WorkoutTrackerPage extends StatefulWidget {
@@ -122,7 +125,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
 
   Future<void> _finishWorkout() async {
     final session = WorkoutSession(
-      workoutId: widget.workout.id!,
+      workoutId: widget.workout.id,
       date: DateTime.now(),
       exercises: exerciseSessions,
     );

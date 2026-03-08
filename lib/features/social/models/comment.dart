@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Comment {
   final String id;
   final String userId;
@@ -34,7 +32,7 @@ class Comment {
       username: map['username'],
       postId: map['postId'],
       content: map['content'],
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: (map['createdAt'] as dynamic).toDate(),
     );
   }
 

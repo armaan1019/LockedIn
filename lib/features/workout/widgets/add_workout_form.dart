@@ -2,10 +2,11 @@ import 'package:flutter/material.dart';
 import '../models/workout.dart';
 import 'exercise_input.dart';
 import '../../../core/database/local_db.dart';
+import '../models/exercise.dart';
 
 class AddWorkoutForm extends StatefulWidget {
   final void Function(Workout) onSave;
-  final Workout? existingWorkout; 
+  final Workout? existingWorkout;
 
   const AddWorkoutForm({super.key, required this.onSave, this.existingWorkout});
 
@@ -27,28 +28,28 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
 
     if (widget.existingWorkout != null) {
       _exerciseInputs = widget.existingWorkout!.exercises
-          .map((e) => ExerciseInput(
-                name: e.name,
-                sets: e.sets,
-                reps: e.reps,
-              ))
+          .map((e) => ExerciseInput(name: e.name, sets: e.sets, reps: e.reps))
           .toList();
     } else {
       _exerciseInputs = [ExerciseInput()];
     }
   }
 
-  void _addExerciseField() => setState(() => _exerciseInputs.add(ExerciseInput()));
-  void _removeExerciseField(int index) => setState(() => _exerciseInputs.removeAt(index));
+  void _addExerciseField() =>
+      setState(() => _exerciseInputs.add(ExerciseInput()));
+  void _removeExerciseField(int index) =>
+      setState(() => _exerciseInputs.removeAt(index));
 
   void _save() async {
     if (_formKey.currentState!.validate()) {
       final exercises = _exerciseInputs
-          .map((input) => Exercise(
-                name: input.nameController.text,
-                sets: int.parse(input.setsController.text),
-                reps: int.parse(input.repsController.text),
-              ))
+          .map(
+            (input) => Exercise(
+              name: input.nameController.text,
+              sets: int.parse(input.setsController.text),
+              reps: int.parse(input.repsController.text),
+            ),
+          )
           .toList();
 
       final workout = Workout(
@@ -59,7 +60,7 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
         calories: exercises.length * 50,
       );
 
-      if(workout.id != null) {
+      if (workout.id != null) {
         await LocalDb.instance.updateWorkout(workout.toMap());
         widget.onSave(workout);
       } else {
@@ -88,16 +89,25 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                widget.existingWorkout != null ? 'Edit Workout' : 'Add New Workout',
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                widget.existingWorkout != null
+                    ? 'Edit Workout'
+                    : 'Add New Workout',
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(labelText: 'Workout Title'),
-                validator: (v) => v == null || v.isEmpty ? 'Enter a title' : null,
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Enter a title' : null,
               ),
               const SizedBox(height: 12),
-              const Text('Exercises', style: TextStyle(fontWeight: FontWeight.bold)),
+              const Text(
+                'Exercises',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
               ..._exerciseInputs.asMap().entries.map((entry) {
                 final index = entry.key;
@@ -110,7 +120,10 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
                       children: [
                         if (_exerciseInputs.length > 1)
                           IconButton(
-                            icon: const Icon(Icons.remove_circle, color: Colors.red),
+                            icon: const Icon(
+                              Icons.remove_circle,
+                              color: Colors.red,
+                            ),
                             onPressed: () => _removeExerciseField(index),
                           ),
                       ],

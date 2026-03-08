@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/workout.dart';
+import '../models/workout_session.dart';
+import '../models/exercise_session.dart';
 
 class PastWorkoutsSheet extends StatelessWidget {
   final List<WorkoutSession> sessions;
@@ -43,7 +44,10 @@ class PastWorkoutsSheet extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(exercise.name, style: const TextStyle(fontWeight: FontWeight.w600)),
+        Text(
+          exercise.name,
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         ...exercise.sets.asMap().entries.map((entry) {
           final i = entry.key;
           final set = entry.value;

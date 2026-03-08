@@ -2,6 +2,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../../features/workout/models/workout.dart';
 import '../services/auth_service.dart';
+import '../../features/workout/models/workout_session.dart';
 
 class LocalDb {
   static final LocalDb instance = LocalDb._();

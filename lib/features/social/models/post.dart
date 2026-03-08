@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class Post {
   final String id;
   final String userId;
@@ -21,7 +19,7 @@ class Post {
       userId: map['userId'],
       username: map['username'],
       content: map['content'],
-      createdAt: (map['createdAt'] as Timestamp).toDate(),
+      createdAt: (map['createdAt'] as dynamic).toDate(),
     );
   }
 

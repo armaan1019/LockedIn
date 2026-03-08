@@ -5,6 +5,7 @@ import '../widgets/add_workout_form.dart';
 import '../widgets/workout_card.dart';
 import '../../../core/database/local_db.dart';
 import '../widgets/past_workout_sheet.dart';
+import '../models/workout_session.dart';
 
 class WorkoutPage extends StatefulWidget {
   const WorkoutPage({super.key});
@@ -69,7 +70,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   void _showPastWorkouts(Workout workout) async {
-    final pastSessions = await LocalDb.instance.getWorkoutSessionsByWorkoutId(workout.id!);
+    final pastSessions = await LocalDb.instance.getWorkoutSessionsByWorkoutId(
+      workout.id!,
+    );
 
     showModalBottomSheet(
       context: context,
