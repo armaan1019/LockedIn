@@ -124,6 +124,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
 
   Future<void> _finishWorkout() async {
     final session = WorkoutSession(
+      id: '',
       workoutId: widget.workout.id,
       date: DateTime.now(),
       exercises: exerciseSessions,
@@ -137,9 +138,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
 
     // Only send session back to parent if user confirms
     if (result != null) {
-      final id = await LocalDb.instance.insertWorkoutSession(session.toMap());
-      final savedSession = session.copyWith(id: id);
-      Navigator.pop(context, savedSession); // Pass completed session back
+      Navigator.pop(context, session); // Pass completed session back
     }
   }
 

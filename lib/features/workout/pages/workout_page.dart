@@ -6,6 +6,7 @@ import '../widgets/workout_card.dart';
 import '../widgets/past_workout_sheet.dart';
 import '../models/workout_session.dart';
 import '../repositories/workout_repository.dart';
+import '../repositories/workout_session_repository.dart';
 
 class WorkoutPage extends StatefulWidget {
   const WorkoutPage({super.key});
@@ -17,8 +18,7 @@ class WorkoutPage extends StatefulWidget {
 class _WorkoutPageState extends State<WorkoutPage> {
   final List<Workout> _workouts = [];
   final _workoutRepo = WorkoutRepository();
-
-  final List<WorkoutSession> _history = [];
+  final _workoutSessionsRepo = WorkoutSessionRepository();
 
   @override
   void initState() {
@@ -47,7 +47,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     });
   }
 
-  void _startWorkout(Workout workout) async {
+  Future<void> _startWorkout(Workout workout) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -56,9 +56,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     );
 
     if (result != null && result is WorkoutSession) {
-      setState(() {
-        _history.insert(0, result);
-      });
+      await _workoutSessionsRepo.addWorkoutSession(result);
     }
   }
 
@@ -82,7 +80,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   void _showPastWorkouts(Workout workout) async {
-    final pastSessions = await LocalDb.instance.getWorkoutSessionsByWorkoutId(
+    final pastSessions = await _workoutSessionsRepo.getPastWorkoutsByWorkoutId(
       workout.id,
     );
 
