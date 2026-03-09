@@ -1,8 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import '../../features/workout/models/workout.dart';
 import '../services/auth_service.dart';
-import '../../features/workout/models/workout_session.dart';
 
 class LocalDb {
   static final LocalDb instance = LocalDb._();
@@ -283,7 +281,7 @@ class LocalDb {
     );
   }
 
-  Future<Workout?> getWorkoutById(int id) async {
+  /*Future<Workout?> getWorkoutById(int id) async {
     final database = await db;
     final result = await database.query(
       'workouts',
@@ -293,7 +291,7 @@ class LocalDb {
     );
     if (result.isEmpty) return null;
     return Workout.fromMap(result.first);
-  }
+  }*/
 
   Future<int> deleteWorkout(int id) async {
     final database = await db;
@@ -329,7 +327,7 @@ class LocalDb {
     return database.insert('workout_sessions', row);
   }
 
-  Future<List<WorkoutSession>> getWorkoutSessionsByWorkoutId(
+  /*Future<List<WorkoutSession>> getWorkoutSessionsByWorkoutId(
     int workoutId,
   ) async {
     final database = await db;
@@ -341,7 +339,7 @@ class LocalDb {
     );
 
     return rows.map((r) => WorkoutSession.fromMap(r)).toList();
-  }
+  }*/
 
   Future<int> deleteWorkoutSession(int id) async {
     final database = await db;

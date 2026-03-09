@@ -15,7 +15,7 @@ class WorkoutSession {
 
   Map<String, dynamic> toMap() {
     return {
-      'workout_id': workoutId,
+      'workoutId': workoutId,
       'exercises': exercises.map((e) => e.toMap()).toList(),
       'date': date,
     };
@@ -35,7 +35,7 @@ class WorkoutSession {
 
     return WorkoutSession(
       id: id,
-      workoutId: map['workout_id'] as String,
+      workoutId: map['workoutId'] as String,
       date: (map['date'] as dynamic).toDate(),
       exercises: exerciseList.map((e) => ExerciseSession.fromMap(e as Map<String, dynamic>)).toList(),
     );

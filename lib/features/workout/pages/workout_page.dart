@@ -79,7 +79,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
     );
   }
 
-  void _showPastWorkouts(Workout workout) async {
+  Future<void> _showPastWorkouts(Workout workout) async {
     final pastSessions = await _workoutSessionsRepo.getPastWorkoutsByWorkoutId(
       workout.id,
     );
