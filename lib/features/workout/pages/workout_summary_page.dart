@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
-import '../../../core/database/local_db.dart';
 import '../models/workout_session.dart';
+import '../repositories/workout_repository.dart';
 
 class WorkoutSummaryPage extends StatefulWidget {
   final WorkoutSession session;
@@ -13,6 +13,7 @@ class WorkoutSummaryPage extends StatefulWidget {
 
 class _WorkoutSummaryPageState extends State<WorkoutSummaryPage> {
   Workout? workout;
+  final _workoutRepo = WorkoutRepository();
 
   @override
   void initState() {
@@ -21,9 +22,7 @@ class _WorkoutSummaryPageState extends State<WorkoutSummaryPage> {
   }
 
   Future<void> _loadWorkout() async {
-    final fetchedWorkout = await LocalDb.instance.getWorkoutById(
-      widget.session.workoutId,
-    );
+    final fetchedWorkout = await _workoutRepo.getWorkoutById(widget.session.workoutId);
     setState(() {
       workout = fetchedWorkout;
     });

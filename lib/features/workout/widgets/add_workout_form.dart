@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/workout.dart';
 import 'exercise_input.dart';
-import '../../../core/database/local_db.dart';
 import '../models/exercise.dart';
 
 class AddWorkoutForm extends StatefulWidget {
@@ -53,21 +52,14 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
           .toList();
 
       final workout = Workout(
-        id: widget.existingWorkout?.id,
+        id: '',
         title: _titleController.text,
         exercises: exercises,
         duration: exercises.length * 10,
         calories: exercises.length * 50,
       );
 
-      if (workout.id != null) {
-        await LocalDb.instance.updateWorkout(workout.toMap());
-        widget.onSave(workout);
-      } else {
-        final id = await LocalDb.instance.insertWorkout(workout.toMap());
-        final savedWorkout = workout.copyWith(id: id);
-        widget.onSave(savedWorkout);
-      }
+      widget.onSave(workout);
     }
   }
 

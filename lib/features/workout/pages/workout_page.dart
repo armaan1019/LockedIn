@@ -3,9 +3,9 @@ import 'workout_tracker_page.dart';
 import '../models/workout.dart';
 import '../widgets/add_workout_form.dart';
 import '../widgets/workout_card.dart';
-import '../../../core/database/local_db.dart';
 import '../widgets/past_workout_sheet.dart';
 import '../models/workout_session.dart';
+import '../repositories/workout_repository.dart';
 
 class WorkoutPage extends StatefulWidget {
   const WorkoutPage({super.key});
@@ -16,6 +16,7 @@ class WorkoutPage extends StatefulWidget {
 
 class _WorkoutPageState extends State<WorkoutPage> {
   final List<Workout> _workouts = [];
+  final _workoutRepo = WorkoutRepository();
 
   final List<WorkoutSession> _history = [];
 
@@ -25,9 +26,21 @@ class _WorkoutPageState extends State<WorkoutPage> {
     _loadWorkouts();
   }
 
+  Future<void> _updateWorkout(Workout workout) async {
+    await _workoutRepo.updateWorkout(workout);
+    await _loadWorkouts();
+
+    Navigator.pop(context);
+  }
+
+  Future<void> _deleteWorkout(String id) async {
+    await _workoutRepo.deleteWorkout(id);
+    await _loadWorkouts();
+  }
+
   Future<void> _loadWorkouts() async {
-    final rows = await LocalDb.instance.getWorkouts();
-    final loaded = rows.map((map) => Workout.fromMap(map)).toList();
+    final loaded = await _workoutRepo.getWorkouts();
+
     setState(() {
       _workouts.clear();
       _workouts.addAll(loaded);
@@ -49,10 +62,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
     }
   }
 
-  void _addWorkout(Workout workout) {
-    setState(() {
-      _workouts.add(workout);
-    });
+  Future<void> _addWorkout(Workout workout) async {
+    await _workoutRepo.addWorkout(workout);
+    await _loadWorkouts();
     Navigator.pop(context);
   }
 
@@ -71,7 +83,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   void _showPastWorkouts(Workout workout) async {
     final pastSessions = await LocalDb.instance.getWorkoutSessionsByWorkoutId(
-      workout.id!,
+      workout.id,
     );
 
     showModalBottomSheet(
@@ -118,10 +130,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                             child: AddWorkoutForm(
                               existingWorkout: workoutToEdit,
                               onSave: (updatedWorkout) {
-                                setState(() {
-                                  _workouts[index] = updatedWorkout;
-                                });
-                                Navigator.pop(context);
+                                _updateWorkout(updatedWorkout);
                               },
                             ),
                           ),
@@ -141,11 +150,9 @@ class _WorkoutPageState extends State<WorkoutPage> {
                                 child: const Text('Cancel'),
                               ),
                               ElevatedButton(
-                                onPressed: () {
-                                  setState(() {
-                                    _workouts.removeAt(index);
-                                  });
+                                onPressed: () async {
                                   Navigator.pop(context);
+                                  await _deleteWorkout(w.id);
                                 },
                                 child: const Text('Delete'),
                               ),

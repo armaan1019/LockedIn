@@ -4,7 +4,6 @@ import '../models/workout.dart';
 import '../models/workout_session.dart';
 import '../models/set_entry.dart';
 import '../models/exercise_session.dart';
-import '../../../core/database/local_db.dart';
 
 class WorkoutTrackerPage extends StatefulWidget {
   final Workout workout;
