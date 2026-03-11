@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../pages/food_search_page.dart';
 import 'add_ingredient_form.dart';
-import '../models/meal.dart';
+import '../models/saved_meal.dart';
 import '../models/ingredient.dart';
 
 class CreateMealForm extends StatefulWidget {

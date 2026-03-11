@@ -1,19 +1,19 @@
 import 'food.dart';
 
 class Ingredient {
-  final int? id;
+  final String id;
   final Food food;
   double servings; // number of servings (e.g. 2 = 2 servings)
 
-  Ingredient({this.id, required this.food, required this.servings});
+  Ingredient({required this.id, required this.food, required this.servings});
 
-  Map<String, Object?> toMap() {
-    return {'id': id, 'foodId': food.id, 'servings': servings};
+  Map<String, dynamic> toMap() {
+    return {'foodId': food.id, 'servings': servings};
   }
 
-  factory Ingredient.fromMap(Map<String, Object?> map, Food food) {
+  factory Ingredient.fromMap(String id, Map<String, dynamic> map, Food food) {
     return Ingredient(
-      id: map['id'] as int?,
+      id: id,
       food: food,
       servings: (map['servings'] as num).toDouble(),
     );

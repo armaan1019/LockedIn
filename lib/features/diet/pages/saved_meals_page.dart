@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/meal.dart';
+import '../models/saved_meal.dart';
 
 class SavedMealsPage extends StatelessWidget {
   final List<Meal> savedMeals;

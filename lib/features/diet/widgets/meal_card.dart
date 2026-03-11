@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/meal.dart';
+import '../models/saved_meal.dart';
 
 class MealCard extends StatelessWidget {
   final Meal meal;

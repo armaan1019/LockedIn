@@ -1,5 +1,5 @@
 class Food {
-  int? id;
+  final String id;
   final String name;
   final int caloriesPer100g;
   final int proteinPer100g;
@@ -8,7 +8,7 @@ class Food {
   final double defaultServingGrams; // e.g., 28g for 1 slice of bacon
 
   Food({
-    this.id,
+    required this.id,
     required this.name,
     required this.caloriesPer100g,
     required this.proteinPer100g,
@@ -17,9 +17,8 @@ class Food {
     this.defaultServingGrams = 100.0,
   });
 
-  Map<String, Object?> toMap() {
+  Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
       'calories': caloriesPer100g,
       'protein': proteinPer100g,
@@ -29,15 +28,15 @@ class Food {
     };
   }
 
-  factory Food.fromMap(Map<String, Object?> map) {
+  factory Food.fromMap(String id, Map<String, dynamic> map) {
     return Food(
-      id: map['id'] as int?,
+      id: id,
       name: map['name'] as String,
       caloriesPer100g: map['calories'] as int,
       proteinPer100g: map['protein'] as int,
       carbsPer100g: map['carbs'] as int,
       fatPer100g: map['fat'] as int,
-      defaultServingGrams: (map['defaultServingGrams'] as num).toDouble(),
+      defaultServingGrams: (map['defaultServingGrams'] as num?)?.toDouble() ?? 100.0,
     );
   }
 

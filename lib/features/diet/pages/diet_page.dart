@@ -7,7 +7,7 @@ import '../widgets/meal_card.dart';
 import '../widgets/macro_info.dart';
 import '../widgets/create_meal_form.dart';
 import '../../../core/database/local_db.dart';
-import '../models/meal.dart';
+import '../models/saved_meal.dart';
 import '../models/ingredient.dart';
 
 class DietPage extends StatefulWidget {
