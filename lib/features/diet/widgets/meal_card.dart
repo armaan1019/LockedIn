@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/food.dart';
+import '../models/meal.dart';
 
 class MealCard extends StatelessWidget {
   final Meal meal;
@@ -22,9 +22,7 @@ class MealCard extends StatelessWidget {
       elevation: 2,
       child: ListTile(
         title: Text(meal.name),
-        subtitle: Text(
-          meal.ingredients.map((i) => i.name).join(', '),
-        ),
+        subtitle: Text(meal.ingredients.map((i) => i.name).join(', ')),
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

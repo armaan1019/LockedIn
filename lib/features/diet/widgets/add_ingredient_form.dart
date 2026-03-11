@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/food.dart';
+import '../models/ingredient.dart';
 
 class AddIngredientForm extends StatefulWidget {
   const AddIngredientForm({super.key});
@@ -22,14 +23,32 @@ class _AddIngredientFormState extends State<AddIngredientForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Text('Add Ingredient',
-              style: TextStyle(fontSize: 18)),
+          const Text('Add Ingredient', style: TextStyle(fontSize: 18)),
 
-          TextField(controller: name, decoration: const InputDecoration(labelText: 'Name')),
-          TextField(controller: calories, decoration: const InputDecoration(labelText: 'Calories'), keyboardType: TextInputType.number),
-          TextField(controller: protein, decoration: const InputDecoration(labelText: 'Protein'), keyboardType: TextInputType.number),
-          TextField(controller: carbs, decoration: const InputDecoration(labelText: 'Carbs'), keyboardType: TextInputType.number),
-          TextField(controller: fat, decoration: const InputDecoration(labelText: 'Fat'), keyboardType: TextInputType.number),
+          TextField(
+            controller: name,
+            decoration: const InputDecoration(labelText: 'Name'),
+          ),
+          TextField(
+            controller: calories,
+            decoration: const InputDecoration(labelText: 'Calories'),
+            keyboardType: TextInputType.number,
+          ),
+          TextField(
+            controller: protein,
+            decoration: const InputDecoration(labelText: 'Protein'),
+            keyboardType: TextInputType.number,
+          ),
+          TextField(
+            controller: carbs,
+            decoration: const InputDecoration(labelText: 'Carbs'),
+            keyboardType: TextInputType.number,
+          ),
+          TextField(
+            controller: fat,
+            decoration: const InputDecoration(labelText: 'Fat'),
+            keyboardType: TextInputType.number,
+          ),
 
           ElevatedButton(
             onPressed: () {

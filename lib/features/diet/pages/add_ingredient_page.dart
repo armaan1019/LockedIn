@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/food.dart';
+import '../models/ingredient.dart';
 
 class AddIngredientPage extends StatefulWidget {
   final Food food;
@@ -44,7 +45,9 @@ class _AddIngredientPageState extends State<AddIngredientPage> {
 
             TextField(
               controller: _servingsController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(
                 hintText: 'e.g. 2',
                 border: OutlineInputBorder(),
@@ -55,8 +58,12 @@ class _AddIngredientPageState extends State<AddIngredientPage> {
             const SizedBox(height: 16),
 
             Text('Calories: ${food.caloriesForServings(servings)}'),
-            Text('Protein: ${food.proteinForServings(servings).toStringAsFixed(1)} g'),
-            Text('Carbs: ${food.carbsForServings(servings).toStringAsFixed(1)} g'),
+            Text(
+              'Protein: ${food.proteinForServings(servings).toStringAsFixed(1)} g',
+            ),
+            Text(
+              'Carbs: ${food.carbsForServings(servings).toStringAsFixed(1)} g',
+            ),
             Text('Fat: ${food.fatForServings(servings).toStringAsFixed(1)} g'),
 
             const Spacer(),
@@ -65,10 +72,7 @@ class _AddIngredientPageState extends State<AddIngredientPage> {
               onPressed: () {
                 Navigator.pop(
                   context,
-                  Ingredient(
-                    food: food,
-                    servings: servings,
-                  ),
+                  Ingredient(food: food, servings: servings),
                 );
               },
               child: const Text('Add Ingredient'),

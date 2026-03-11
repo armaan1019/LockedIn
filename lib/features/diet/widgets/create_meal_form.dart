@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../models/food.dart';
 import '../pages/food_search_page.dart';
 import 'add_ingredient_form.dart';
+import '../models/meal.dart';
+import '../models/ingredient.dart';
 
 class CreateMealForm extends StatefulWidget {
   final bool isEditing;
@@ -34,8 +35,7 @@ class _CreateMealFormState extends State<CreateMealForm> {
     if (widget.initialMeal != null) {
       _mealNameController.text = widget.initialMeal!.name;
       _ingredients.addAll(widget.initialMeal!.ingredients);
-    } 
-    else if (widget.initialIngredient != null) {
+    } else if (widget.initialIngredient != null) {
       _ingredients.add(widget.initialIngredient!);
     }
   }
@@ -44,10 +44,7 @@ class _CreateMealFormState extends State<CreateMealForm> {
     if (_mealNameController.text.isEmpty || _ingredients.isEmpty) return;
 
     widget.onSave(
-      Meal(
-        name: _mealNameController.text,
-        ingredients: _ingredients,
-      ),
+      Meal(name: _mealNameController.text, ingredients: _ingredients),
     );
     Navigator.pop(context);
   }
@@ -60,8 +57,10 @@ class _CreateMealFormState extends State<CreateMealForm> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Create Meal',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+          const Text(
+            'Create Meal',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
 
           TextField(
             controller: _mealNameController,
@@ -70,8 +69,10 @@ class _CreateMealFormState extends State<CreateMealForm> {
 
           const SizedBox(height: 12),
 
-          const Text('Ingredients',
-              style: TextStyle(fontWeight: FontWeight.bold)),
+          const Text(
+            'Ingredients',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
 
           ..._ingredients.asMap().entries.map((entry) {
             final index = entry.key;
@@ -159,7 +160,8 @@ class _CreateMealFormState extends State<CreateMealForm> {
                       child: const Text('Cancel'),
                     ),
                     ElevatedButton(
-                      onPressed: () => Navigator.pop(context, queryController.text),
+                      onPressed: () =>
+                          Navigator.pop(context, queryController.text),
                       child: const Text('Search'),
                     ),
                   ],
@@ -190,7 +192,9 @@ class _CreateMealFormState extends State<CreateMealForm> {
               Expanded(
                 child: ElevatedButton(
                   onPressed: _saveMeal,
-                  child: Text(widget.isEditing ? 'Save Changes' : 'Add to Today'),
+                  child: Text(
+                    widget.isEditing ? 'Save Changes' : 'Add to Today',
+                  ),
                 ),
               ),
 
@@ -200,7 +204,9 @@ class _CreateMealFormState extends State<CreateMealForm> {
                   child: ElevatedButton(
                     onPressed: () {
                       if (widget.onSaveTemplate == null) return;
-                      if (_mealNameController.text.isEmpty || _ingredients.isEmpty) return;
+                      if (_mealNameController.text.isEmpty ||
+                          _ingredients.isEmpty)
+                        return;
 
                       final meal = Meal(
                         name: _mealNameController.text,

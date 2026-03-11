@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/food_api.dart';
 import '../models/food.dart';
 import 'add_ingredient_page.dart';
+import '../models/ingredient.dart';
 
 class FoodSearchPage extends StatefulWidget {
   final String query;
