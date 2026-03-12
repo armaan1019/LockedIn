@@ -8,13 +8,13 @@ class Ingredient {
   Ingredient({required this.id, required this.food, required this.servings});
 
   Map<String, dynamic> toMap() {
-    return {'foodId': food.id, 'servings': servings};
+    return {'food': food.toMap(), 'servings': servings};
   }
 
   factory Ingredient.fromMap(String id, Map<String, dynamic> map, Food food) {
     return Ingredient(
       id: id,
-      food: food,
+      food: Food.fromMap(map['food'] as Map<String, dynamic>),
       servings: (map['servings'] as num).toDouble(),
     );
   }

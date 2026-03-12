@@ -6,9 +6,9 @@ import 'saved_meals_page.dart';
 import '../widgets/meal_card.dart';
 import '../widgets/macro_info.dart';
 import '../widgets/create_meal_form.dart';
-import '../../../core/database/local_db.dart';
 import '../models/saved_meal.dart';
 import '../models/ingredient.dart';
+import '../models/meal_entry.dart';
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
@@ -18,8 +18,8 @@ class DietPage extends StatefulWidget {
 }
 
 class _DietPageState extends State<DietPage> {
-  final List<Meal> _meals = [];
-  final List<Meal> _savedMeals = [];
+  final List<MealEntry> _meals = [];
+  final List<SavedMeal> _savedMeals = [];
 
   @override
   void initState() {
@@ -32,17 +32,17 @@ class _DietPageState extends State<DietPage> {
     await _loadSavedMeals();
   }
 
-  int get totalProtein => _meals.fold(0, (sum, meal) => sum + meal.protein);
+  int get totalProtein => _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.protein);
 
-  int get totalCarbs => _meals.fold(0, (sum, meal) => sum + meal.carbs);
+  int get totalCarbs => _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.carbs);
 
-  int get totalFat => _meals.fold(0, (sum, meal) => sum + meal.fat);
+  int get totalFat => _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.fat);
 
   Ingredient _ingredientFromFood(Food food) {
     return Ingredient(food: food, servings: 1.0);
   }
 
-  Future<void> _logExistingMeal(Meal template) async {
+  Future<void> _logExistingMeal(SavedMeal template) async {
     final db = LocalDb.instance;
 
     final today = DateTime.now();

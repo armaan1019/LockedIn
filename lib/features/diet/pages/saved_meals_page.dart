@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/saved_meal.dart';
 
 class SavedMealsPage extends StatelessWidget {
-  final List<Meal> savedMeals;
+  final List<SavedMeal> savedMeals;
 
   const SavedMealsPage({super.key, required this.savedMeals});
 
@@ -13,15 +13,15 @@ class SavedMealsPage extends StatelessWidget {
       body: ListView.builder(
         itemCount: savedMeals.length,
         itemBuilder: (context, index) {
-          final meal = savedMeals[index];
+          final saved = savedMeals[index];
 
           return Card(
             margin: const EdgeInsets.all(8),
             child: ListTile(
-              title: Text(meal.name),
-              subtitle: Text('${meal.calories} cal'),
+              title: Text(saved.meal.name),
+              subtitle: Text('${saved.meal.calories} cal'),
               onTap: () {
-                Navigator.pop(context, meal);
+                Navigator.pop(context, saved.meal);
               },
             ),
           );

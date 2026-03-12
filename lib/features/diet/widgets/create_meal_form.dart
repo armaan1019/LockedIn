@@ -3,11 +3,13 @@ import '../pages/food_search_page.dart';
 import 'add_ingredient_form.dart';
 import '../models/saved_meal.dart';
 import '../models/ingredient.dart';
+import '../models/meal_entry.dart';
+import '../models/meal.dart';
 
 class CreateMealForm extends StatefulWidget {
   final bool isEditing;
-  final void Function(Meal) onSave;
-  final void Function(Meal)? onSaveTemplate;
+  final void Function(MealEntry) onSave;
+  final void Function(SavedMeal)? onSaveTemplate;
   final Ingredient? initialIngredient;
   final Meal? initialMeal;
 
@@ -29,6 +31,12 @@ class _CreateMealFormState extends State<CreateMealForm> {
   final List<Ingredient> _ingredients = [];
 
   @override
+  void dispose() {
+    _mealNameController.dispose();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
 
@@ -43,9 +51,12 @@ class _CreateMealFormState extends State<CreateMealForm> {
   void _saveMeal() {
     if (_mealNameController.text.isEmpty || _ingredients.isEmpty) return;
 
-    widget.onSave(
-      Meal(name: _mealNameController.text, ingredients: _ingredients),
+    final meal = Meal(
+      name: _mealNameController.text,
+      ingredients: List.from(_ingredients),
     );
+
+    widget.onSave(MealEntry(entryId: '', meal: meal, date: DateTime.now()));
     Navigator.pop(context);
   }
 
@@ -210,10 +221,12 @@ class _CreateMealFormState extends State<CreateMealForm> {
 
                       final meal = Meal(
                         name: _mealNameController.text,
-                        ingredients: _ingredients,
+                        ingredients: List.from(_ingredients),
                       );
 
-                      widget.onSaveTemplate!(meal);
+                      final savedMeal = SavedMeal(mealId: '', meal: meal);
+
+                      widget.onSaveTemplate!(savedMeal);
                       Navigator.pop(context);
                     },
                     child: const Text('Save Template'),

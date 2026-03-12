@@ -1,18 +1,25 @@
+import 'meal.dart';
+import 'ingredient.dart';
+
 class MealEntry {
   final String entryId;
-  final String mealId;
+  final Meal meal;
   final DateTime date;
 
-  MealEntry({required this.entryId, required this.mealId, required this.date});
+  MealEntry({required this.entryId, required this.meal, required this.date});
 
   Map<String, dynamic> toMap() {
-    return {'mealId': mealId, 'date': date};
+    return {'meal': meal.toMap(), 'date': date};
   }
 
-  factory MealEntry.fromMap(String entryId, Map<String, dynamic> map) {
+  factory MealEntry.fromMap(
+    String entryId,
+    Map<String, dynamic> map,
+    List<Ingredient> ingredients,
+  ) {
     return MealEntry(
       entryId: entryId,
-      mealId: map['mealId'] as String,
+      meal: Meal.fromMap(map['meal'] as Map<String, dynamic>, ingredients),
       date: (map['date'] as dynamic).toDate(),
     );
   }

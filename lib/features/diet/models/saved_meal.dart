@@ -1,37 +1,21 @@
 import 'ingredient.dart';
+import 'meal.dart';
 
 class SavedMeal {
   final String mealId;
-  final String name;
-  final List<Ingredient> ingredients;
+  final Meal meal;
 
-  SavedMeal({
-    required this.mealId,
-    required this.name,
-    required this.ingredients,
-  });
+  SavedMeal({required this.mealId, required this.meal});
 
   factory SavedMeal.fromMap(
     String mealId,
     Map<String, dynamic> map,
     List<Ingredient> ingredients,
   ) {
-    return SavedMeal(
-      mealId: mealId,
-      name: map['name'] as String,
-      ingredients: ingredients,
-    );
+    return SavedMeal(mealId: mealId, meal: Meal.fromMap(map, ingredients));
   }
 
   Map<String, dynamic> toMap() {
-    return {'name': name, 'ingredients': ingredients.map((i) => i.toMap()).toList()};
+    return meal.toMap();
   }
-
-  int get calories => ingredients.fold(0, (sum, i) => sum + i.calories);
-
-  int get protein => ingredients.fold(0, (sum, i) => sum + i.protein);
-
-  int get carbs => ingredients.fold(0, (sum, i) => sum + i.carbs);
-
-  int get fat => ingredients.fold(0, (sum, i) => sum + i.fat);
 }

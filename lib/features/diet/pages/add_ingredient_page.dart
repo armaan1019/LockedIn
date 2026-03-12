@@ -72,7 +72,7 @@ class _AddIngredientPageState extends State<AddIngredientPage> {
               onPressed: () {
                 Navigator.pop(
                   context,
-                  Ingredient(food: food, servings: servings),
+                  Ingredient(id: '', food: food, servings: servings),
                 );
               },
               child: const Text('Add Ingredient'),

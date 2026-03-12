@@ -54,15 +54,16 @@ class _AddIngredientFormState extends State<AddIngredientForm> {
             onPressed: () {
               final food = Food(
                 name: name.text,
-                caloriesPer100g: int.parse(calories.text),
-                proteinPer100g: int.parse(protein.text),
-                carbsPer100g: int.parse(carbs.text),
-                fatPer100g: int.parse(fat.text),
+                caloriesPer100g: int.tryParse(calories.text) ?? 0,
+                proteinPer100g: int.tryParse(protein.text) ?? 0,
+                carbsPer100g: int.tryParse(carbs.text) ?? 0,
+                fatPer100g: int.tryParse(fat.text) ?? 0,
               );
 
               Navigator.pop(
                 context,
                 Ingredient(
+                  id: '',
                   food: food,
                   servings: 1.0, // default serving size
                 ),
