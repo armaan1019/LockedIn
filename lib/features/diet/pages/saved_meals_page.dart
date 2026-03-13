@@ -21,7 +21,7 @@ class SavedMealsPage extends StatelessWidget {
               title: Text(saved.meal.name),
               subtitle: Text('${saved.meal.calories} cal'),
               onTap: () {
-                Navigator.pop(context, saved.meal);
+                Navigator.pop(context, saved);
               },
             ),
           );

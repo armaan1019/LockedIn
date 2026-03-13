@@ -9,6 +9,7 @@ import '../widgets/create_meal_form.dart';
 import '../models/saved_meal.dart';
 import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
+import '../repositories/diet_repository.dart';
 
 class DietPage extends StatefulWidget {
   const DietPage({super.key});
@@ -20,6 +21,7 @@ class DietPage extends StatefulWidget {
 class _DietPageState extends State<DietPage> {
   final List<MealEntry> _meals = [];
   final List<SavedMeal> _savedMeals = [];
+  final DietRepository _dietRepo = DietRepository();
 
   @override
   void initState() {
@@ -28,94 +30,42 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _initPage() async {
-    await _loadTodayMeals();
-    await _loadSavedMeals();
+    await Future.wait([_loadTodayMeals(), _loadSavedMeals()]);
   }
 
-  int get totalProtein => _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.protein);
+  int get totalProtein =>
+      _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.protein);
 
-  int get totalCarbs => _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.carbs);
+  int get totalCarbs =>
+      _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.carbs);
 
-  int get totalFat => _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.fat);
+  int get totalFat =>
+      _meals.fold(0, (sum, mealEntry) => sum + mealEntry.meal.fat);
+
+  int get totalCalories => _meals.fold(
+    0,
+    (previousValue, mealEntry) => previousValue + mealEntry.meal.calories,
+  );
 
   Ingredient _ingredientFromFood(Food food) {
-    return Ingredient(food: food, servings: 1.0);
+    return Ingredient(id: '', food: food, servings: 1.0);
   }
 
   Future<void> _logExistingMeal(SavedMeal template) async {
-    final db = LocalDb.instance;
+    final mealEntry = MealEntry(
+      entryId: '',
+      meal: template.meal,
+      date: DateTime.now(),
+    );
 
-    final today = DateTime.now();
-    final dateKey = DateTime(
-      today.year,
-      today.month,
-      today.day,
-    ).millisecondsSinceEpoch;
-
-    final newMealId = await db.insertMeal({'name': template.name});
-
-    for (final ing in template.ingredients) {
-      int foodId;
-
-      if (ing.food.id == null) {
-        foodId = await db.insertFood(ing.food.toMap());
-      } else {
-        foodId = ing.food.id!;
-      }
-      await db.insertIngredient({
-        'meal_id': newMealId,
-        'food_id': foodId,
-        'servings': ing.servings,
-      });
-    }
-
-    await db.insertDietEntry({'meal_id': newMealId, 'date': dateKey});
-
+    await _dietRepo.addMealEntry(mealEntry);
     await _loadTodayMeals();
   }
 
   Future<void> _loadSavedMeals() async {
-    final db = LocalDb.instance;
+    final loaded = await _dietRepo.getSavedMeals();
 
-    final database = await db.db;
-    final meals = await database.query(
-      'meals',
-      where: 'is_template = 1',
-      orderBy: 'id DESC',
-    );
-
-    List<Meal> loaded = [];
-
-    for (final meal in meals) {
-      final mealId = meal['id'] as int;
-
-      final ingredientMaps = await db.getIngredientsForMeal(mealId);
-      List<Ingredient> ingredients = [];
-
-      for (final ing in ingredientMaps) {
-        ingredients.add(
-          Ingredient(
-            food: Food(
-              id: ing['food_id'] as int,
-              name: ing['name'] as String,
-              caloriesPer100g: ing['calories'] as int,
-              proteinPer100g: ing['protein'] as int,
-              carbsPer100g: ing['carbs'] as int,
-              fatPer100g: ing['fat'] as int,
-            ),
-            servings: ing['servings'] as double,
-          ),
-        );
-      }
-      loaded.add(
-        Meal(
-          mealId: mealId,
-          name: meal['name'] as String,
-          ingredients: ingredients,
-        ),
-      );
-    }
-
+    if (!mounted) return;
     setState(() {
       _savedMeals
         ..clear()
@@ -124,124 +74,48 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _loadTodayMeals() async {
-    final db = LocalDb.instance;
+    final loadedMeals = await _dietRepo.getMealsForDay(DateTime.now());
 
-    final today = DateTime.now();
-    final dateKey = DateTime(
-      today.year,
-      today.month,
-      today.day,
-    ).millisecondsSinceEpoch;
-
-    final entries = await db.getDietEntriesByDate(dateKey);
-
-    List<Meal> loadedMeals = [];
-
-    for (final entry in entries) {
-      final entryId = entry['id'] as int;
-      final mealId = entry['meal_id'] as int;
-
-      final mealMap = await db.getMealById(mealId);
-      if (mealMap == null) continue; // skip if meal was deleted
-
-      final ingredientMaps = await db.getIngredientsForMeal(mealId);
-
-      List<Ingredient> ingredients = [];
-
-      for (final ing in ingredientMaps) {
-        final foodMap = await db.getFoodById(ing['food_id'] as int);
-        if (foodMap == null) continue; // skip missing food
-
-        ingredients.add(
-          Ingredient(
-            food: Food.fromMap(foodMap),
-            servings: ing['servings'] as double,
-          ),
-        );
-      }
-
-      loadedMeals.add(
-        Meal(
-          entryId: entryId,
-          mealId: mealId,
-          name: mealMap['name'] as String,
-          ingredients: ingredients,
-        ),
-      );
-    }
-
+    if (!mounted) return;
     setState(() {
-      _meals.clear();
-      _meals.addAll(loadedMeals);
+      _meals
+        ..clear()
+        ..addAll(loadedMeals);
     });
   }
 
-  void _saveMealTemplate(Meal meal) async {
-    final db = LocalDb.instance;
-
-    final mealId = await db.insertMeal({'name': meal.name}, isTemplate: true);
-
-    for (final ing in meal.ingredients) {
-      int foodId;
-
-      if (ing.food.id == null) {
-        foodId = await db.insertFood(ing.food.toMap());
-        ing.food.id = foodId;
-      } else {
-        foodId = ing.food.id!;
-      }
-      await db.insertIngredient({
-        'meal_id': mealId,
-        'food_id': ing.food.id,
-        'servings': ing.servings,
-      });
-    }
-
+  Future<void> _saveMealTemplate(SavedMeal savedMeal) async {
+    await _dietRepo.saveMealTemplate(savedMeal);
     await _loadSavedMeals();
 
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${meal.name} saved for future use')),
+      SnackBar(content: Text('${savedMeal.meal.name} saved for future use')),
     );
   }
 
   Future<void> _deleteMeal(int index) async {
-    final db = LocalDb.instance;
-    final meal = _meals[index];
-
-    await db.deleteDietEntry(meal.entryId!);
+    final mealEntry = _meals[index];
+    await _dietRepo.deleteMealEntry(mealEntry.entryId);
 
     await _loadTodayMeals();
   }
 
-  Future<void> _editMeal(int index, Meal updatedMeal) async {
-    final db = LocalDb.instance;
-    final old = _meals[index];
+  Future<void> _editMeal(int index, MealEntry updatedMealEntry) async {
+    final oldMealEntry = _meals[index];
 
-    final mealId = old.mealId!;
+    final updated = MealEntry(
+      entryId: oldMealEntry.entryId,
+      meal: updatedMealEntry.meal,
+      date: oldMealEntry.date,
+    );
 
-    await db.updateMeal(mealId, {'name': updatedMeal.name});
-    await db.deleteIngredientsForMeal(mealId);
-
-    for (final ing in updatedMeal.ingredients) {
-      int foodId;
-
-      if (ing.food.id == null) {
-        foodId = await db.insertFood(ing.food.toMap());
-        ing.food.id = foodId;
-      } else {
-        foodId = ing.food.id!;
-      }
-      await db.insertIngredient({
-        'meal_id': mealId,
-        'food_id': foodId,
-        'servings': ing.servings,
-      });
-    }
+    await _dietRepo.updateMealEntry(updated);
 
     await _loadTodayMeals();
   }
 
-  void _openEditSheet(int index, Meal meal) {
+  void _openEditSheet(int index, MealEntry mealEntry) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -250,10 +124,10 @@ class _DietPageState extends State<DietPage> {
           bottom: MediaQuery.of(context).viewInsets.bottom,
         ),
         child: CreateMealForm(
-          onSave: (updatedMeal) async {
-            await _editMeal(index, updatedMeal);
+          onSave: (updatedMealEntry) async {
+            await _editMeal(index, updatedMealEntry);
           },
-          initialMeal: meal,
+          initialMeal: mealEntry.meal,
           isEditing: true,
         ),
       ),
@@ -273,6 +147,7 @@ class _DietPageState extends State<DietPage> {
     final food = await FoodApi.fetchByBarcode(barcode);
 
     if (food == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Food not found')));
@@ -280,6 +155,7 @@ class _DietPageState extends State<DietPage> {
     }
 
     // Open AddMealForm with auto-filled food
+    if (!mounted) return;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -296,37 +172,10 @@ class _DietPageState extends State<DietPage> {
     );
   }
 
-  void _addMeal(Meal meal) async {
-    final db = LocalDb.instance;
-
-    final mealId = await db.insertMeal({'name': meal.name});
-
-    for (final ing in meal.ingredients) {
-      int foodId;
-
-      // SAFE CHECK
-      if (ing.food.id == null) {
-        foodId = await db.insertFood(ing.food.toMap());
-        ing.food.id = foodId;
-      } else {
-        foodId = ing.food.id!;
-      }
-
-      await db.insertIngredient({
-        'meal_id': mealId,
-        'food_id': foodId,
-        'servings': ing.servings,
-      });
-    }
-
-    final today = DateTime.now();
-    final dateKey = DateTime(
-      today.year,
-      today.month,
-      today.day,
-    ).millisecondsSinceEpoch;
-
-    await db.insertDietEntry({'meal_id': mealId, 'date': dateKey});
+  Future<void> _addMeal(MealEntry mealEntry) async {
+    await _dietRepo.addMealEntry(
+      MealEntry(entryId: '', meal: mealEntry.meal, date: DateTime.now()),
+    );
 
     await _loadTodayMeals();
   }
@@ -377,15 +226,15 @@ class _DietPageState extends State<DietPage> {
                 onTap: () async {
                   Navigator.pop(context);
 
-                  final meal = await Navigator.push<Meal>(
+                  final selectedMeal = await Navigator.push<SavedMeal>(
                     context,
                     MaterialPageRoute(
                       builder: (_) => SavedMealsPage(savedMeals: _savedMeals),
                     ),
                   );
 
-                  if (meal != null) {
-                    _logExistingMeal(meal);
+                  if (selectedMeal != null) {
+                    _logExistingMeal(selectedMeal);
                   }
                 },
               ),
@@ -395,9 +244,6 @@ class _DietPageState extends State<DietPage> {
       },
     );
   }
-
-  int get totalCalories =>
-      _meals.fold(0, (previousValue, meal) => previousValue + meal.calories);
 
   @override
   Widget build(BuildContext context) {
@@ -441,9 +287,9 @@ class _DietPageState extends State<DietPage> {
                 child: ListView.builder(
                   itemCount: _meals.length,
                   itemBuilder: (context, index) {
-                    final meal = _meals[index];
+                    final mealEntry = _meals[index];
                     return MealCard(
-                      meal: meal,
+                      mealEntry: mealEntry,
                       index: index,
                       onDelete: _deleteMeal,
                       onEdit: (i, m) => _openEditSheet(i, m),
