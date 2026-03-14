@@ -52,7 +52,7 @@ class _AddWorkoutFormState extends State<AddWorkoutForm> {
           .toList();
 
       final workout = Workout(
-        id: '',
+        id: widget.existingWorkout?.id ?? '',
         title: _titleController.text,
         exercises: exercises,
         duration: exercises.length * 10,

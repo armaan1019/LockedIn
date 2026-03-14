@@ -7,15 +7,16 @@ import '../models/saved_meal.dart';
 
 class DietRepository {
   final FirebaseFirestore _firestore;
+  final String userId;
 
-  DietRepository({FirebaseFirestore? firestore})
+  DietRepository({required this.userId, FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
 
   CollectionReference<Map<String, dynamic>> get _dietEntries =>
-      _firestore.collection('diet_entries');
+      _firestore.collection('users').doc(userId).collection('diet_entries');
 
   CollectionReference<Map<String, dynamic>> get _savedMeals =>
-      _firestore.collection('saved_meals');
+      _firestore.collection('users').doc(userId).collection('saved_meals');
 
   Future<List<MealEntry>> getMealsForDay(DateTime date) async {
     final dayStart = DateTime(date.year, date.month, date.day);

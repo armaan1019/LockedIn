@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../widgets/greetings_widget.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -9,7 +10,7 @@ class DashboardPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _GreetingSection(),
+          GreetingSection(),
           const SizedBox(height: 24),
           _StatsSection(),
           const SizedBox(height: 24),
@@ -18,32 +19,6 @@ class DashboardPage extends StatelessWidget {
           _RecentActivitySection(),
         ],
       ),
-    );
-  }
-}
-
-class _GreetingSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
-        Text(
-          'Welcome back 👋',
-          style: TextStyle(
-            fontSize: 26,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 4),
-        Text(
-          'Let’s crush today’s goals',
-          style: TextStyle(
-            fontSize: 16,
-            color: Colors.grey,
-          ),
-        ),
-      ],
     );
   }
 }
@@ -101,21 +76,12 @@ class _StatCard extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               value,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 14),
-            ),
+            Text(title, style: const TextStyle(fontSize: 14)),
             Text(
               subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
@@ -132,10 +98,7 @@ class _ProgressSection extends StatelessWidget {
       children: [
         const Text(
           'Progress',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Card(
@@ -162,10 +125,7 @@ class _RecentActivitySection extends StatelessWidget {
       children: [
         const Text(
           'Recent Activity',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         _ActivityTile(

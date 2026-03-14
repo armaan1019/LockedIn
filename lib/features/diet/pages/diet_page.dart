@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../services/food_api.dart';
 import '../models/food.dart';
 import 'barcode_scanner_page.dart';
@@ -21,7 +22,6 @@ class DietPage extends StatefulWidget {
 class _DietPageState extends State<DietPage> {
   final List<MealEntry> _meals = [];
   final List<SavedMeal> _savedMeals = [];
-  final DietRepository _dietRepo = DietRepository();
 
   @override
   void initState() {
@@ -52,18 +52,26 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _logExistingMeal(SavedMeal template) async {
+    final dietRepo = context.read<DietRepository?>();
+
+    if (dietRepo == null) return;
+
     final mealEntry = MealEntry(
       entryId: '',
       meal: template.meal,
       date: DateTime.now(),
     );
 
-    await _dietRepo.addMealEntry(mealEntry);
+    await dietRepo.addMealEntry(mealEntry);
     await _loadTodayMeals();
   }
 
   Future<void> _loadSavedMeals() async {
-    final loaded = await _dietRepo.getSavedMeals();
+    final dietRepo = context.read<DietRepository?>();
+
+    if (dietRepo == null) return;
+
+    final loaded = await dietRepo.getSavedMeals();
 
     if (!mounted) return;
     setState(() {
@@ -74,7 +82,11 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _loadTodayMeals() async {
-    final loadedMeals = await _dietRepo.getMealsForDay(DateTime.now());
+    final dietRepo = context.read<DietRepository?>();
+
+    if (dietRepo == null) return;
+
+    final loadedMeals = await dietRepo.getMealsForDay(DateTime.now());
 
     if (!mounted) return;
     setState(() {
@@ -85,7 +97,11 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _saveMealTemplate(SavedMeal savedMeal) async {
-    await _dietRepo.saveMealTemplate(savedMeal);
+    final dietRepo = context.read<DietRepository?>();
+
+    if (dietRepo == null) return;
+
+    await dietRepo.saveMealTemplate(savedMeal);
     await _loadSavedMeals();
 
     if (!mounted) return;
@@ -95,13 +111,21 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _deleteMeal(int index) async {
+    final dietRepo = context.read<DietRepository?>();
+
+    if (dietRepo == null) return;
+
     final mealEntry = _meals[index];
-    await _dietRepo.deleteMealEntry(mealEntry.entryId);
+    await dietRepo.deleteMealEntry(mealEntry.entryId);
 
     await _loadTodayMeals();
   }
 
   Future<void> _editMeal(int index, MealEntry updatedMealEntry) async {
+    final dietRepo = context.read<DietRepository?>();
+
+    if (dietRepo == null) return;
+
     final oldMealEntry = _meals[index];
 
     final updated = MealEntry(
@@ -110,7 +134,7 @@ class _DietPageState extends State<DietPage> {
       date: oldMealEntry.date,
     );
 
-    await _dietRepo.updateMealEntry(updated);
+    await dietRepo.updateMealEntry(updated);
 
     await _loadTodayMeals();
   }
@@ -173,7 +197,11 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _addMeal(MealEntry mealEntry) async {
-    await _dietRepo.addMealEntry(
+    final dietRepo = context.read<DietRepository?>();
+
+    if (dietRepo == null) return;
+
+    await dietRepo.addMealEntry(
       MealEntry(entryId: '', meal: mealEntry.meal, date: DateTime.now()),
     );
 
