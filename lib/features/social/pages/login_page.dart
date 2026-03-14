@@ -19,6 +19,13 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   String? _error;
 
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
@@ -32,9 +39,11 @@ class _LoginPageState extends State<LoginPage> {
       _passwordController.text.trim(),
     );
 
+    if (!mounted) return;
+
     setState(() => _isLoading = false);
 
-    if(!success) {
+    if (!success) {
       setState(() => _error = "Invalid login");
     }
   }

@@ -9,16 +9,16 @@ class SessionManager extends ChangeNotifier {
   String? get currentUserId => _currentUser?.id;
   bool get isLoggedIn => _currentUser != null;
 
+  SessionManager() {
+    AuthService.instance.authStateChanges.listen((user) {
+      _currentUser = user;
+      notifyListeners();
+    });
+  }
+
   Future<bool> login(String username, String password) async {
     final user = await AuthService.instance.login(username, password);
-
-    if (user == null) {
-      return false;
-    }
-
-    _currentUser = user;
-    notifyListeners();
-    return true;
+    return user != null;
   }
 
   Future<bool> signUp({
@@ -31,17 +31,10 @@ class SessionManager extends ChangeNotifier {
       email: email,
       password: password,
     );
-    if (user == null) {
-      return false;
-    }
-    _currentUser = user;
-    notifyListeners();
-    return true;
+    return user != null;
   }
 
   void logout() {
     AuthService.instance.logout();
-    _currentUser = null;
-    notifyListeners();
   }
 }

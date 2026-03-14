@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'workout_tracker_page.dart';
 import '../models/workout.dart';
 import '../widgets/add_workout_form.dart';
@@ -17,8 +18,6 @@ class WorkoutPage extends StatefulWidget {
 
 class _WorkoutPageState extends State<WorkoutPage> {
   final List<Workout> _workouts = [];
-  final _workoutRepo = WorkoutRepository();
-  final _workoutSessionsRepo = WorkoutSessionRepository();
 
   @override
   void initState() {
@@ -27,19 +26,31 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   Future<void> _updateWorkout(Workout workout) async {
-    await _workoutRepo.updateWorkout(workout);
+    final workoutRepo = context.read<WorkoutRepository?>();
+
+    if (workoutRepo == null) return;
+
+    await workoutRepo.updateWorkout(workout);
     await _loadWorkouts();
 
     Navigator.pop(context);
   }
 
   Future<void> _deleteWorkout(String id) async {
-    await _workoutRepo.deleteWorkout(id);
+    final workoutRepo = context.read<WorkoutRepository?>();
+    
+    if (workoutRepo == null) return;
+
+    await workoutRepo.deleteWorkout(id);
     await _loadWorkouts();
   }
 
   Future<void> _loadWorkouts() async {
-    final loaded = await _workoutRepo.getWorkouts();
+    final workoutRepo = context.read<WorkoutRepository?>();
+    
+    if (workoutRepo == null) return;
+
+    final loaded = await workoutRepo.getWorkouts();
 
     setState(() {
       _workouts.clear();
@@ -48,6 +59,10 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   Future<void> _startWorkout(Workout workout) async {
+    final workoutSessionsRepo = context.read<WorkoutSessionRepository?>();
+    
+    if (workoutSessionsRepo == null) return;
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -56,12 +71,16 @@ class _WorkoutPageState extends State<WorkoutPage> {
     );
 
     if (result != null && result is WorkoutSession) {
-      await _workoutSessionsRepo.addWorkoutSession(result);
+      await workoutSessionsRepo.addWorkoutSession(result);
     }
   }
 
   Future<void> _addWorkout(Workout workout) async {
-    await _workoutRepo.addWorkout(workout);
+    final workoutRepo = context.read<WorkoutRepository?>();
+    
+    if (workoutRepo == null) return;
+
+    await workoutRepo.addWorkout(workout);
     await _loadWorkouts();
     Navigator.pop(context);
   }
@@ -80,7 +99,11 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   Future<void> _showPastWorkouts(Workout workout) async {
-    final pastSessions = await _workoutSessionsRepo.getPastWorkoutsByWorkoutId(
+    final workoutSessionsRepo = context.read<WorkoutSessionRepository?>();
+    
+    if (workoutSessionsRepo == null) return;
+
+    final pastSessions = await workoutSessionsRepo.getPastWorkoutsByWorkoutId(
       workout.id,
     );
 

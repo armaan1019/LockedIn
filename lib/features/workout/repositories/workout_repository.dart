@@ -3,12 +3,16 @@ import '../models/workout.dart';
 
 class WorkoutRepository {
   final FirebaseFirestore _firestore;
+  final String userId;
 
-  WorkoutRepository({FirebaseFirestore? firestore})
+  WorkoutRepository({required this.userId, FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
 
+  CollectionReference<Map<String, dynamic>> get _workouts =>
+      _firestore.collection('users').doc(userId).collection('workouts');
+
   Future<void> addWorkout(Workout workout) async {
-    final workoutRef = _firestore.collection('workouts').doc();
+    final workoutRef = _workouts.doc();
 
     final newWorkout = workout.copyWith(id: workoutRef.id);
 
@@ -16,7 +20,7 @@ class WorkoutRepository {
   }
 
   Future<List<Workout>> getWorkouts() async {
-    final snapshot = await _firestore.collection('workouts').get();
+    final snapshot = await _workouts.get();
 
     return snapshot.docs
         .map((doc) => Workout.fromMap(doc.id, doc.data()))
@@ -24,18 +28,17 @@ class WorkoutRepository {
   }
 
   Future<void> deleteWorkout(String id) async {
-    await _firestore.collection('workouts').doc(id).delete();
+    await _workouts.doc(id).delete();
   }
 
   Future<void> updateWorkout(Workout workout) async {
-    await _firestore
-        .collection('workouts')
+    await _workouts
         .doc(workout.id)
         .update(workout.toMap());
   }
 
   Future<Workout?> getWorkoutById(String id) async {
-    final doc = await _firestore.collection('workouts').doc(id).get();
+    final doc = await _workouts.doc(id).get();
 
     if (!doc.exists) return null;
     return Workout.fromMap(doc.id, doc.data()!);

@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'app.dart';
-import 'core/services/session_manager.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
+import 'core/providers/app_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => SessionManager(),
-      child: const MyApp(),
-    ),
-  );
+  runApp(MultiProvider(providers: appProviders, child: const MyApp()));
 }

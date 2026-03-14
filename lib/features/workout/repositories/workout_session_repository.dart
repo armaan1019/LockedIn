@@ -3,15 +3,18 @@ import '../models/workout_session.dart';
 
 class WorkoutSessionRepository {
   final FirebaseFirestore _firestore;
+  final String userId;
 
-  WorkoutSessionRepository({FirebaseFirestore? firestore})
+  WorkoutSessionRepository({required this.userId, FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
+
+  CollectionReference<Map<String, dynamic>> get _workoutSessions =>
+      _firestore.collection('users').doc(userId).collection('workoutSessions');
 
   Future<List<WorkoutSession>> getPastWorkoutsByWorkoutId(
     String workoutId,
   ) async {
-    final snapshot = await _firestore
-        .collection('workoutSessions')
+    final snapshot = await _workoutSessions
         .where('workoutId', isEqualTo: workoutId)
         .get();
 
@@ -21,7 +24,7 @@ class WorkoutSessionRepository {
   }
 
   Future<void> addWorkoutSession(WorkoutSession session) async {
-    final sessionRef = _firestore.collection('workoutSessions').doc();
+    final sessionRef = _workoutSessions.doc();
     final newSession = session.copyWith(id: sessionRef.id);
     await sessionRef.set(newSession.toMap());
   }
