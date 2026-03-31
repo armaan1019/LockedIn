@@ -1,0 +1,8 @@
+# pack-refs with: peeled fully-peeled sorted 
+dad8519bc55dd4c7b4817a3c3d63e0eeb72f0765 refs/heads/addSetsAndReps
+d42f6217cbb1841bc2f39721275962abfb64c64d refs/heads/feature/diet
+886c678a57d64808f3aed5e834fbd73686264479 refs/heads/feature/social
+681da953ff32158aecd9d3130c7566dcfa598660 refs/heads/firebase-migration
+a1a2570c83542d209aa6fc347005ffe61c506d66 refs/heads/firebase-migration-clean
+e75c0f06763f952c87c8f78cca5a9aa5e7a5214e refs/heads/localDb
+886c678a57d64808f3aed5e834fbd73686264479 refs/heads/main
