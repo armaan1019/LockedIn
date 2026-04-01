@@ -14,4 +14,22 @@ To run this app, you must:
 
 May need: You may need to run pod install in the ios directory of the project. This will configure ios cocoa pods files.
 
+This app contains the following features:
 
+1) Workout tracking - Create your own workouts and play them live. They will be recorded in the past sessions widget.
+
+2) Diet tracking - Create your own saved meals. Add them manually or look them up. Protein, carbs, fat, and calories will all be tracked and updated manually. 
+
+3) Social aspect - Users can create posts and like posts. They can also comment. 
+
+Other behind the scenes features:
+
+1) Firebase Authentication
+
+2) Provider
+
+3) Session Manager
+
+4) SQLite Local database (Earlier version of the app)
+
+5) .env
