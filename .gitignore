@@ -49,3 +49,4 @@ ios/Runner/GoogleService-Info.plist
 android/app/google-services.json
 firebase_options.dart
 .env
+backup.git
