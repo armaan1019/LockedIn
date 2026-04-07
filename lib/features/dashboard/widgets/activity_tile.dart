@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
+import '../../workout/models/workout_session.dart';
 
 class ActivityTile extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final IconData icon;
+  final WorkoutSession session;
 
-  const ActivityTile({
-    super.key,
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
+  const ActivityTile({super.key, required this.session});
 
   @override
   Widget build(BuildContext context) {
+    final names = session.exercises.map((e) => e.name).toList();
     return Card(
       child: ListTile(
-        leading: Icon(icon),
-        title: Text(title),
-        subtitle: Text(subtitle),
+        leading: const Icon(Icons.fitness_center),
+        title: Text(),
+        subtitle: Text(names.length > 3
+          ? '${names.take(3).join(' * ')} +${names.length - 3} more'
+          : names.join(' * '),
+        )
       ),
     );
   }
