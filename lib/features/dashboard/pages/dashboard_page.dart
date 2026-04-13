@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../widgets/greetings_widget.dart';
 import '../widgets/stats_section.dart';
 import '../widgets/progress_section.dart';
-import '../widgets/recent_activity.dart';
+import 'recent_activity.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'activity_tile.dart';
+import '../widgets/activity_tile.dart';
 import '../repositories/dashboard_repository.dart';
 import 'package:provider/provider.dart';
 import '../../workout/models/workout_session.dart';
