@@ -1,4 +1,3 @@
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import '../../features/workout/repositories/workout_repository.dart';
 import '../services/session_manager.dart';
