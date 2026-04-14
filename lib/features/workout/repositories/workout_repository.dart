@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/workout.dart'; 
+import '../models/workout.dart';
 
 class WorkoutRepository {
   final FirebaseFirestore _firestore;
@@ -10,6 +10,9 @@ class WorkoutRepository {
 
   CollectionReference<Map<String, dynamic>> get _workouts =>
       _firestore.collection('users').doc(userId).collection('workouts');
+
+  CollectionReference<Map<String, dynamic>> get _sessions =>
+      _firestore.collection('users').doc(userId).collection('workoutSessions');
 
   Future<void> addWorkout(Workout workout) async {
     final workoutRef = _workouts.doc();
@@ -28,13 +31,17 @@ class WorkoutRepository {
   }
 
   Future<void> deleteWorkout(String id) async {
+    final snapshot = await _sessions.where('workoutId', isEqualTo: id).get();
+
+    for (var doc in snapshot.docs) {
+      await doc.reference.delete();
+    }
+
     await _workouts.doc(id).delete();
   }
 
   Future<void> updateWorkout(Workout workout) async {
-    await _workouts
-        .doc(workout.id)
-        .update(workout.toMap());
+    await _workouts.doc(workout.id).update(workout.toMap());
   }
 
   Future<Workout?> getWorkoutById(String id) async {
