@@ -33,9 +33,9 @@ class WorkoutRepository {
   Future<void> deleteWorkout(String id) async {
     final snapshot = await _sessions.where('workoutId', isEqualTo: id).get();
 
-    for (var doc in snapshot.docs) {
-      await doc.reference.delete();
-    }
+    await Future.wait(
+      snapshot.docs.map((doc) => doc.reference.delete()),
+    );
 
     await _workouts.doc(id).delete();
   }

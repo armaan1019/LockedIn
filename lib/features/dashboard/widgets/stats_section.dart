@@ -21,7 +21,7 @@ class StatsSection extends StatelessWidget {
           child: StatCard(
             title: 'Calories',
             value: '1,820',
-            subtitle: 'Burned',
+            subtitle: 'Today',
             icon: Icons.local_fire_department,
           ),
         ),
