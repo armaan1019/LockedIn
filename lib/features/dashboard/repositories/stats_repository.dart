@@ -11,9 +11,6 @@ class StatsRepository {
   CollectionReference<Map<String, dynamic>> get _sessions =>
       _firestore.collection('users').doc(userId).collection('workoutSessions');
 
-  CollectionReference<Map<String, dynamic>> get _dietEntries =>
-      _firestore.collection('users').doc(userId).collection('diet_entries');
-
   Future<int> getWorkoutsThisWeek() async {
     final now = DateTime.now();
     final oneWeekAgo = now.subtract(const Duration(days: 7));
