@@ -33,3 +33,6 @@ Other behind the scenes features:
 4) SQLite Local database (Earlier version of the app)
 
 5) .env
+
+Images:
+<img width="941" height="2048" alt="Image" src="https://github.com/user-attachments/assets/21b7eed0-43af-4a01-9a41-4f143d593032" />
