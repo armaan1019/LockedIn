@@ -35,7 +35,7 @@ Other behind the scenes features:
 5) .env
 
 Images:
-<br>
+<br><br>
 <img width="200" alt="Image" src="https://github.com/user-attachments/assets/3aaf3e1a-5edb-4ae8-b9a9-72e9cb552b1f" />
 <img width="200" alt="Image" src="https://github.com/user-attachments/assets/afec3a14-fe57-4fa5-9dae-c53bf864ffc8" />
 <img width="200" alt="Image" src="https://github.com/user-attachments/assets/2f5dbd5b-9269-4990-b0bc-eaee2a5694d9" />
