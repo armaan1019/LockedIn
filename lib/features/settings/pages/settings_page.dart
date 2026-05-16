@@ -1,9 +1,20 @@
 import 'package:flutter/material.dart';
 import '../../../core/services/session_manager.dart';
 import 'package:provider/provider.dart';
+import '../widgets/settings_tile.dart';
+import '../widgets/settings_section_title.dart';
+import '../widgets/settings_switch_tile.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  bool notificationsEnabled = true;
+  bool darkMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -13,51 +24,50 @@ class SettingsPage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: ListView(
           children: [
-            const Text(
-              'Account',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            const SettingsSectionTitle(title: 'Account'),
+
+            SettingsTile(
+              icon: Icons.person,
+              title: 'Edit Profile',
+              onTap: () {},
             ),
-            const SizedBox(height: 12),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Edit Profile'),
-              onTap: () {
-                // Navigate to edit profile screen
-              },
+
+            SettingsTile(
+              icon: Icons.lock,
+              title: "Change Password",
+              onTap: () {},
             ),
-            ListTile(
-              leading: const Icon(Icons.lock),
-              title: const Text('Change Password'),
-              onTap: () {
-                // Navigate to change password
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
+
+            SettingsTile(
+              icon: Icons.logout,
+              title: "Logout",
               onTap: () {
                 context.read<SessionManager>().logout();
                 Navigator.pop(context);
               },
             ),
-            const SizedBox(height: 24),
-            const Text(
-              'Preferences',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            ListTile(
-              leading: const Icon(Icons.notifications),
-              title: const Text('Notifications'),
-              onTap: () {
-                // Toggle notifications
+
+            const SettingsSectionTitle(title: 'Preferences'),
+
+            SettingsSwitchTile(
+              icon: Icons.notifications,
+              title: "Notifications",
+              value: notificationsEnabled,
+              onChanged: (value) {
+                setState(() {
+                  notificationsEnabled = value;
+                });
               },
             ),
-            ListTile(
-              leading: const Icon(Icons.palette),
-              title: const Text('Theme'),
-              onTap: () {
-                // Toggle light/dark mode
+
+            SettingsSwitchTile(
+              icon: Icons.dark_mode,
+              title: "Dark Mode",
+              value: darkMode,
+              onChanged: (value) {
+                setState(() {
+                  darkMode = value;
+                });
               },
             ),
           ],
