@@ -6,6 +6,7 @@ import '../widgets/settings_section_title.dart';
 import '../widgets/settings_switch_tile.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/notification_provider.dart';
+import '../../profile/edit_profile_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -15,6 +16,37 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  Future<void> _showLogoutDialog() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context, false);
+              },
+              child: const Text('Cancel'),
+            ),
+
+            FilledButton(
+              onPressed: () {
+                Navigator.pop(context, true);
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout == true) {
+      context.read<SessionManager>().logout();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,7 +60,12 @@ class _SettingsPageState extends State<SettingsPage> {
             SettingsTile(
               icon: Icons.person,
               title: 'Edit Profile',
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const EditProfilePage()),
+                );
+              },
             ),
 
             SettingsTile(
@@ -40,10 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
             SettingsTile(
               icon: Icons.logout,
               title: "Logout",
-              onTap: () {
-                context.read<SessionManager>().logout();
-                Navigator.pop(context);
-              },
+              onTap: _showLogoutDialog,
             ),
 
             const SettingsSectionTitle(title: 'Preferences'),
