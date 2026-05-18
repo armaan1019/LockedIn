@@ -6,9 +6,11 @@ import 'package:provider/single_child_widget.dart';
 import '../../features/diet/repositories/diet_repository.dart';
 import '../../features/dashboard/repositories/recent_activity_repository.dart';
 import '../../features/dashboard/repositories/stats_repository.dart';
+import 'theme_provider.dart';
 
 List<SingleChildWidget> appProviders = [
   ChangeNotifierProvider(create: (_) => SessionManager()),
+  ChangeNotifierProvider(create: (_) => ThemeProvider()),
 
   ProxyProvider<SessionManager, WorkoutRepository?>(
     update: (context, sessionManager, previous) {

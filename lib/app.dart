@@ -3,6 +3,7 @@ import 'navigation/app_shell.dart';
 import 'features/social/pages/login_page.dart';
 import 'core/services/session_manager.dart';
 import 'package:provider/provider.dart';
+import 'core/providers/theme_provider.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -14,10 +15,9 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'Workout App',
-          theme: ThemeData(
-            useMaterial3: true,
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          ),
+          theme: ThemeData.light(),
+          darkTheme: ThemeData.dark(),
+          themeMode: context.watch<ThemeProvider>().themeMode,
           home: session.isLoggedIn ? const AppShell() : const LoginPage(),
         );
       },

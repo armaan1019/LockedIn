@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../widgets/settings_tile.dart';
 import '../widgets/settings_section_title.dart';
 import '../widgets/settings_switch_tile.dart';
+import '../../../core/providers/theme_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -14,7 +15,6 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool notificationsEnabled = true;
-  bool darkMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -63,10 +63,10 @@ class _SettingsPageState extends State<SettingsPage> {
             SettingsSwitchTile(
               icon: Icons.dark_mode,
               title: "Dark Mode",
-              value: darkMode,
+              value: context.watch<ThemeProvider>().isDarkMode,
               onChanged: (value) {
                 setState(() {
-                  darkMode = value;
+                  context.read<ThemeProvider>().toggleTheme(value);
                 });
               },
             ),
