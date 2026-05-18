@@ -5,6 +5,7 @@ import '../widgets/settings_tile.dart';
 import '../widgets/settings_section_title.dart';
 import '../widgets/settings_switch_tile.dart';
 import '../../../core/providers/theme_provider.dart';
+import '../../../core/providers/notification_provider.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -14,8 +15,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  bool notificationsEnabled = true;
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -52,11 +51,9 @@ class _SettingsPageState extends State<SettingsPage> {
             SettingsSwitchTile(
               icon: Icons.notifications,
               title: "Notifications",
-              value: notificationsEnabled,
+              value: context.watch<NotificationProvider>().notificationsEnabled,
               onChanged: (value) {
-                setState(() {
-                  notificationsEnabled = value;
-                });
+                context.read<NotificationProvider>().toggleNotifications(value);
               },
             ),
 
@@ -65,9 +62,7 @@ class _SettingsPageState extends State<SettingsPage> {
               title: "Dark Mode",
               value: context.watch<ThemeProvider>().isDarkMode,
               onChanged: (value) {
-                setState(() {
-                  context.read<ThemeProvider>().toggleTheme(value);
-                });
+                context.read<ThemeProvider>().toggleTheme(value);
               },
             ),
           ],
