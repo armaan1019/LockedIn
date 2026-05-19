@@ -44,8 +44,10 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (shouldLogout == true) {
       if (!mounted) return;
-
       await context.read<SessionManager>().logout();
+
+      if (!mounted) return;
+      Navigator.pop(context);
     }
   }
 
