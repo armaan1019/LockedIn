@@ -18,7 +18,14 @@ class SessionManager extends ChangeNotifier {
 
   Future<bool> login(String username, String password) async {
     final user = await AuthService.instance.login(username, password);
-    return user != null;
+
+    if (user != null) {
+      _currentUser = user;
+      notifyListeners();
+      return true;
+    }
+
+    return false;
   }
 
   Future<bool> signUp({
@@ -31,10 +38,20 @@ class SessionManager extends ChangeNotifier {
       email: email,
       password: password,
     );
-    return user != null;
+
+    if (user != null) {
+      _currentUser = user;
+      notifyListeners();
+      return true;
+    }
+
+    return false;
   }
 
-  void logout() {
-    AuthService.instance.logout();
+  Future<void> logout() async {
+    await AuthService.instance.logout();
+
+    _currentUser = null;
+    notifyListeners();
   }
 }

@@ -43,7 +43,9 @@ class _SettingsPageState extends State<SettingsPage> {
     );
 
     if (shouldLogout == true) {
-      context.read<SessionManager>().logout();
+      if (!mounted) return;
+
+      await context.read<SessionManager>().logout();
     }
   }
 
