@@ -45,25 +45,32 @@ class _AddPostFormState extends State<AddPostForm> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Form(
-        key: _formKey,
-        child: Wrap(
-          runSpacing: 12,
-          children: [
-            const Text(
-              'New Post',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            TextFormField(
-              controller: _messageController,
-              decoration: const InputDecoration(labelText: 'Message'),
-              maxLines: 3,
-              validator: (v) =>
-                  v == null || v.isEmpty ? 'Enter a message' : null,
-            ),
-            ElevatedButton(onPressed: _save, child: const Text('Post')),
-          ],
+      padding: EdgeInsets.only(
+        top: 16,
+        left: 16,
+        right: 16,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
+      child: SingleChildScrollView(
+        child: Form(
+          key: _formKey,
+          child: Wrap(
+            runSpacing: 12,
+            children: [
+              const Text(
+                'New Post',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              TextFormField(
+                controller: _messageController,
+                decoration: const InputDecoration(labelText: 'Message'),
+                maxLines: 3,
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Enter a message' : null,
+              ),
+              ElevatedButton(onPressed: _save, child: const Text('Post')),
+            ],
+          ),
         ),
       ),
     );
