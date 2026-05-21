@@ -6,7 +6,7 @@ import '../widgets/settings_section_title.dart';
 import '../widgets/settings_switch_tile.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/notification_provider.dart';
-import '../../profile/edit_profile_page.dart';
+import '../../profile/pages/edit_profile_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

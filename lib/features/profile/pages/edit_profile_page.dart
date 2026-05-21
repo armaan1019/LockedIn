@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../repositories/profile_repository.dart';
+import '../../../core/services/session_manager.dart';
 
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
@@ -22,10 +25,26 @@ class _EditProfilePageState extends State<EditProfilePage> {
     super.dispose();
   }
 
-  void _saveProfile() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pop(context);
-    }
+  void _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final profileRepo = context.read<ProfileRepository?>();
+    final session = context.read<SessionManager>();
+    final user = session.currentUser;
+
+    if (profileRepo == null || user == null) return;
+
+    final updatedUser = user.copyWith(
+      username: usernameController.text.trim(),
+      weight: selectedWeight,
+      feet: selectedFeet,
+      bio: bioController.text.trim(),
+    );
+
+    await profileRepo.updateProfile(updatedUser);
+
+    if (!mounted) return;
+    Navigator.pop(context);
   }
 
   @override

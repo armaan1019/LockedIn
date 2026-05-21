@@ -8,6 +8,7 @@ import '../../features/dashboard/repositories/recent_activity_repository.dart';
 import '../../features/dashboard/repositories/stats_repository.dart';
 import 'notification_provider.dart';
 import 'theme_provider.dart';
+import '../../features/profile/repositories/profile_repository.dart';
 
 List<SingleChildWidget> appProviders = [
   ChangeNotifierProvider(create: (_) => SessionManager()),
@@ -57,6 +58,15 @@ List<SingleChildWidget> appProviders = [
       if (userId == null) return null;
 
       return StatsRepository(userId: userId);
+    },
+  ),
+  ProxyProvider<SessionManager, ProfileRepository?>(
+    update: (context, sessionManager, previous) {
+      final userId = sessionManager.currentUserId;
+
+      if (userId == null) return null;
+
+      return ProfileRepository(userId: userId);
     },
   ),
 ];
