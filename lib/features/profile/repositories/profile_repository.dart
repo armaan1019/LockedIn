@@ -11,6 +11,9 @@ class ProfileRepository {
   DocumentReference<Map<String, dynamic>> get _userDoc =>
       _firestore.collection('users').doc(userId);
 
+  CollectionReference<Map<String, dynamic>> get _usernames =>
+      _firestore.collection('usernames');
+
   Future<void> updateProfile(AppUser user) async {
     await _userDoc.set(user.toMap(), SetOptions(merge: true));
   }
@@ -23,5 +26,11 @@ class ProfileRepository {
     }
 
     return AppUser.fromMap(doc.id, doc.data()!);
+  }
+
+  Future<bool> isUsernameUnique(String username) async {
+    final doc = await _usernames.doc(username).get();
+
+    return !doc.exists;
   }
 }
