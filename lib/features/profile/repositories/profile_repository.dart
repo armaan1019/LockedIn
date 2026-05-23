@@ -28,9 +28,34 @@ class ProfileRepository {
     return AppUser.fromMap(doc.id, doc.data()!);
   }
 
-  Future<bool> isUsernameUnique(String username) async {
-    final doc = await _usernames.doc(username).get();
+  Future<void> updateUsername({
+    required String oldUsername,
+    required String newUsername,
+    required String email,
+  }) async {
+    if (newUsername == oldUsername) {
+      return;
+    }
 
-    return !doc.exists;
+    final trimmedNew = newUsername.trim();
+    final trimmedOld = oldUsername.trim();
+
+    final newUsernameDoc = _usernames.doc(trimmedNew);
+
+    final existing = await newUsernameDoc.get();
+
+    if (existing.exists) {
+      throw Exception('Username already Taken');
+    }
+
+    final batch = _firestore.batch();
+
+    batch.delete(_usernames.doc(trimmedOld));
+
+    batch.set(newUsernameDoc, {'uid': userId, 'email': email});
+
+    batch.update(_userDoc, {'username': trimmedNew});
+
+    await batch.commit();
   }
 }

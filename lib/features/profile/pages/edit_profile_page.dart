@@ -31,20 +31,36 @@ class _EditProfilePageState extends State<EditProfilePage> {
     final profileRepo = context.read<ProfileRepository?>();
     final session = context.read<SessionManager>();
     final user = session.currentUser;
+    final newUsername = usernameController.text.trim();
 
     if (profileRepo == null || user == null) return;
 
-    final updatedUser = user.copyWith(
-      username: usernameController.text.trim(),
-      weight: selectedWeight,
-      feet: selectedFeet,
-      bio: bioController.text.trim(),
-    );
+    try {
+      await profileRepo.updateUsername(
+        oldUsername: user.username,
+        newUsername: newUsername,
+        email: user.email,
+      );
 
-    await profileRepo.updateProfile(updatedUser);
+      final updatedUser = user.copyWith(
+        username: newUsername,
+        weight: selectedWeight,
+        feet: selectedFeet,
+        inches: selectedInches,
+        bio: bioController.text.trim(),
+      );
 
-    if (!mounted) return;
-    Navigator.pop(context);
+      await profileRepo.updateProfile(updatedUser);
+
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    }
   }
 
   @override
