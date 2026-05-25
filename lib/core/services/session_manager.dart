@@ -54,4 +54,9 @@ class SessionManager extends ChangeNotifier {
     _currentUser = null;
     notifyListeners();
   }
+
+  Future<void> setCurrentUser(AppUser user) async {
+    _currentUser = user;
+    notifyListeners();
+  }
 }

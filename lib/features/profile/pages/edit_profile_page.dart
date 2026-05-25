@@ -19,6 +19,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final bioController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+
+    final user = context.read<SessionManager>().currentUser;
+
+    if (user != null) {
+      usernameController.text = user.username;
+      bioController.text = user.bio;
+      selectedWeight = user.weight ?? selectedWeight;
+      selectedFeet = user.feet ?? selectedFeet;
+      selectedInches = user.inches ?? selectedInches;
+    }
+  }
+
+  @override
   void dispose() {
     usernameController.dispose();
     bioController.dispose();
@@ -51,6 +66,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
       );
 
       await profileRepo.updateProfile(updatedUser);
+      session.setCurrentUser(updatedUser);
 
       if (!mounted) return;
       Navigator.pop(context);
