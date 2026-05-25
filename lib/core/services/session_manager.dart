@@ -59,4 +59,21 @@ class SessionManager extends ChangeNotifier {
     _currentUser = user;
     notifyListeners();
   }
+
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _currentUser;
+
+    if (user == null) {
+      throw Exception('No user logged in');
+    }
+
+    await AuthService.instance.changePassword(
+      email: user.email,
+      currentPassword: currentPassword,
+      newPassword: newPassword,
+    );
+  }
 }

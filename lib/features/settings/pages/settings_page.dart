@@ -7,6 +7,7 @@ import '../widgets/settings_switch_tile.dart';
 import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/notification_provider.dart';
 import '../../profile/pages/edit_profile_page.dart';
+import '../../profile/pages/change_password_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -75,7 +76,12 @@ class _SettingsPageState extends State<SettingsPage> {
             SettingsTile(
               icon: Icons.lock,
               title: "Change Password",
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ChangePasswordPage()),
+                );
+              },
             ),
 
             SettingsTile(

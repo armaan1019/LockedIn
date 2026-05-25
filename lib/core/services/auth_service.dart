@@ -77,14 +77,38 @@ class AuthService {
   }
 
   Stream<AppUser?> get authStateChanges {
-    return FirebaseAuth.instance.authStateChanges().map((firebaseUser) {
+    return _auth.authStateChanges().asyncMap((firebaseUser) async {
       if (firebaseUser == null) return null;
 
-      return AppUser(
-        id: firebaseUser.uid,
-        email: firebaseUser.email ?? '',
-        username: firebaseUser.displayName ?? '',
-      );
+      final userDoc = await _firestore
+        .collection('users')
+        .doc(firebaseUser.uid)
+        .get();
+
+      if(!userDoc.exists) return null;
+
+      return AppUser.fromMap(firebaseUser.uid, userDoc.data()!);
     });
+  }
+
+  Future<void> changePassword({
+    required String email,
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception('No user logged in');
+    }
+
+    final credential = EmailAuthProvider.credential(
+      email: email,
+      password: currentPassword,
+    );
+
+    await user.reauthenticateWithCredential(credential);
+
+    await user.updatePassword(newPassword);
   }
 }

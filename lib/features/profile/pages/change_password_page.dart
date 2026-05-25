@@ -68,7 +68,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: appBar(title: const Text('Change Password')),
+      appBar: AppBar(title: const Text('Change Password')),
 
       body: Padding(
         padding: const EdgeInsets.all(16),
