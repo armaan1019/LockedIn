@@ -69,7 +69,6 @@ class _PostCardState extends State<PostCard> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
       builder: (_) {
         return DraggableScrollableSheet(
           initialChildSize: 0.5,
@@ -79,7 +78,6 @@ class _PostCardState extends State<PostCard> {
           builder: (context, scrollController) {
             return Container(
               decoration: const BoxDecoration(
-                color: Colors.white,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: CommentsSheet(postId: widget.post.id),
