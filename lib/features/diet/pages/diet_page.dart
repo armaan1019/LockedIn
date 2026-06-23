@@ -22,6 +22,7 @@ class DietPage extends StatefulWidget {
 class _DietPageState extends State<DietPage> {
   final List<MealEntry> _meals = [];
   final List<SavedMeal> _savedMeals = [];
+  DateTime _selectedDate = DateTime.now();
 
   @override
   void initState() {
@@ -30,7 +31,11 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _initPage() async {
-    await Future.wait([_loadTodayMeals(), _loadSavedMeals()]);
+    await Future.wait([_loadMealsForSelectedDate(), _loadSavedMeals()]);
+  }
+
+  String get formattedDate {
+    return "${_selectedDate.month}/${_selectedDate.day}/${_selectedDate.year}";
   }
 
   int get totalProtein =>
@@ -51,6 +56,31 @@ class _DietPageState extends State<DietPage> {
     return Ingredient(id: '', food: food, servings: 1.0);
   }
 
+  Future<void> _changeDate(int days) async {
+    setState(() {
+      _selectedDate = _selectedDate.add(Duration(days: days));
+    });
+
+    await _loadMealsForSelectedDate();
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2100),
+    );
+
+    if (picked == null) return;
+
+    setState(() {
+      _selectedDate = picked;
+    });
+
+    await _loadMealsForSelectedDate();
+  }
+
   Future<void> _logExistingMeal(SavedMeal template) async {
     final dietRepo = context.read<DietRepository?>();
 
@@ -59,11 +89,11 @@ class _DietPageState extends State<DietPage> {
     final mealEntry = MealEntry(
       entryId: '',
       meal: template.meal,
-      date: DateTime.now(),
+      date: _selectedDate,
     );
 
     await dietRepo.addMealEntry(mealEntry);
-    await _loadTodayMeals();
+    await _loadMealsForSelectedDate();
   }
 
   Future<void> _loadSavedMeals() async {
@@ -81,12 +111,12 @@ class _DietPageState extends State<DietPage> {
     });
   }
 
-  Future<void> _loadTodayMeals() async {
+  Future<void> _loadMealsForSelectedDate() async {
     final dietRepo = context.read<DietRepository?>();
 
     if (dietRepo == null) return;
 
-    final loadedMeals = await dietRepo.getMealsForDay(DateTime.now());
+    final loadedMeals = await dietRepo.getMealsForDay(_selectedDate);
 
     if (!mounted) return;
     setState(() {
@@ -118,7 +148,7 @@ class _DietPageState extends State<DietPage> {
     final mealEntry = _meals[index];
     await dietRepo.deleteMealEntry(mealEntry.entryId);
 
-    await _loadTodayMeals();
+    await _loadMealsForSelectedDate();
   }
 
   Future<void> _editMeal(int index, MealEntry updatedMealEntry) async {
@@ -136,7 +166,7 @@ class _DietPageState extends State<DietPage> {
 
     await dietRepo.updateMealEntry(updated);
 
-    await _loadTodayMeals();
+    await _loadMealsForSelectedDate();
   }
 
   void _openEditSheet(int index, MealEntry mealEntry) {
@@ -202,10 +232,10 @@ class _DietPageState extends State<DietPage> {
     if (dietRepo == null) return;
 
     await dietRepo.addMealEntry(
-      MealEntry(entryId: '', meal: mealEntry.meal, date: DateTime.now()),
+      MealEntry(entryId: '', meal: mealEntry.meal, date: _selectedDate),
     );
 
-    await _loadTodayMeals();
+    await _loadMealsForSelectedDate();
   }
 
   void _showCreateMealSheet() {
@@ -285,6 +315,45 @@ class _DietPageState extends State<DietPage> {
               const Text(
                 'Your Diet',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.chevron_left),
+                    onPressed: () => _changeDate(-1),
+                  ),
+
+                  InkWell(
+                    onTap: _pickDate,
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      child: Row(
+                        children: [
+                          Text(
+                            formattedDate,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          const Icon(Icons.calendar_month),
+                        ],
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.chevron_right),
+                    onPressed: () => _changeDate(1),
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               Card(
