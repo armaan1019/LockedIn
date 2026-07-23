@@ -5,6 +5,7 @@ import 'core/services/session_manager.dart';
 import 'package:provider/provider.dart';
 import 'core/providers/theme_provider.dart';
 import 'core/theme/app_theme.dart';
+import 'navigation/splash_screen.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -19,7 +20,11 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: context.watch<ThemeProvider>().themeMode,
-          home: session.isLoggedIn ? const AppShell() : const LoginPage(),
+          home: !session.initialized
+              ? const SplashScreen()
+              : session.isLoggedIn
+              ? const AppShell()
+              : const LoginPage(),
         );
       },
     );

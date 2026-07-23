@@ -43,6 +43,10 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
 
+    Future<void> _showDeleteAccountDialog() async {
+      
+    }
+
     if (shouldLogout == true) {
       if (!mounted) return;
       await context.read<SessionManager>().logout();
@@ -88,6 +92,12 @@ class _SettingsPageState extends State<SettingsPage> {
               icon: Icons.logout,
               title: "Logout",
               onTap: _showLogoutDialog,
+            ),
+
+            SettingsTile(
+              icon: Icons.delete_forever,
+              title: "Delete Account",
+              onTap: ,
             ),
 
             const SettingsSectionTitle(title: 'Preferences'),

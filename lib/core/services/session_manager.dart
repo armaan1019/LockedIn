@@ -4,7 +4,9 @@ import 'auth_service.dart';
 
 class SessionManager extends ChangeNotifier {
   AppUser? _currentUser;
+  bool _initialized = false;
 
+  bool get initialized => _initialized;
   AppUser? get currentUser => _currentUser;
   String? get currentUserId => _currentUser?.id;
   bool get isLoggedIn => _currentUser != null;
@@ -12,20 +14,13 @@ class SessionManager extends ChangeNotifier {
   SessionManager() {
     AuthService.instance.authStateChanges.listen((user) {
       _currentUser = user;
+      _initialized = true;
       notifyListeners();
     });
   }
 
   Future<bool> login(String username, String password) async {
-    final user = await AuthService.instance.login(username, password);
-
-    if (user != null) {
-      _currentUser = user;
-      notifyListeners();
-      return true;
-    }
-
-    return false;
+    return await AuthService.instance.login(username, password) != null;
   }
 
   Future<bool> signUp({
@@ -50,9 +45,6 @@ class SessionManager extends ChangeNotifier {
 
   Future<void> logout() async {
     await AuthService.instance.logout();
-
-    _currentUser = null;
-    notifyListeners();
   }
 
   Future<void> setCurrentUser(AppUser user) async {
