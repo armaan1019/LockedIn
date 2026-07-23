@@ -104,4 +104,20 @@ class DietRepository {
       );
     }).toList();
   }
+
+  Future<void> deleteAll() async {
+    final batch = _firestore.batch();
+
+    final dietEntries = await _dietEntries.get();
+    for (final doc in dietEntries.docs) {
+      batch.delete(doc.reference);
+    }
+
+    final savedMeals = await _savedMeals.get();
+    for (final doc in savedMeals.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
+  }
 }

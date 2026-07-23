@@ -81,11 +81,11 @@ class AuthService {
       if (firebaseUser == null) return null;
 
       final userDoc = await _firestore
-        .collection('users')
-        .doc(firebaseUser.uid)
-        .get();
+          .collection('users')
+          .doc(firebaseUser.uid)
+          .get();
 
-      if(!userDoc.exists) return null;
+      if (!userDoc.exists) return null;
 
       return AppUser.fromMap(firebaseUser.uid, userDoc.data()!);
     });
@@ -110,5 +110,14 @@ class AuthService {
     await user.reauthenticateWithCredential(credential);
 
     await user.updatePassword(newPassword);
+  }
+
+  Future<void> deleteAccount() async {
+    final firebaseUser = _auth.currentUser;
+    if (firebaseUser == null) return;
+
+    final uid = firebaseUser.uid;
+
+    final userDoc = await _firestore.collection('users');
   }
 }

@@ -43,10 +43,6 @@ class _SettingsPageState extends State<SettingsPage> {
       },
     );
 
-    Future<void> _showDeleteAccountDialog() async {
-      
-    }
-
     if (shouldLogout == true) {
       if (!mounted) return;
       await context.read<SessionManager>().logout();
@@ -55,6 +51,28 @@ class _SettingsPageState extends State<SettingsPage> {
       Navigator.pop(context);
     }
   }
+
+  Future<void> _showDeleteAccountDialog() async {
+      final shouldDelete = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Delete Account'),
+          content: const Text(
+            'This action cannot be undone. Are you sure you want to permanenetly delete your account',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Delete'),
+            ),
+          ],
+        ),
+      );
+    }
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +115,7 @@ class _SettingsPageState extends State<SettingsPage> {
             SettingsTile(
               icon: Icons.delete_forever,
               title: "Delete Account",
-              onTap: ,
+              onTap: _showDeleteAccountDialog,
             ),
 
             const SettingsSectionTitle(title: 'Preferences'),

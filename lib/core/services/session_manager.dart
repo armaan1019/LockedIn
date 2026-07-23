@@ -68,4 +68,8 @@ class SessionManager extends ChangeNotifier {
       newPassword: newPassword,
     );
   }
+
+  Future<void> deleteAccount() async {
+    await AuthService.instance.deleteAccount();
+  }
 }

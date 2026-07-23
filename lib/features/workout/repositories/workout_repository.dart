@@ -33,9 +33,7 @@ class WorkoutRepository {
   Future<void> deleteWorkout(String id) async {
     final snapshot = await _sessions.where('workoutId', isEqualTo: id).get();
 
-    await Future.wait(
-      snapshot.docs.map((doc) => doc.reference.delete()),
-    );
+    await Future.wait(snapshot.docs.map((doc) => doc.reference.delete()));
 
     await _workouts.doc(id).delete();
   }
@@ -49,5 +47,11 @@ class WorkoutRepository {
 
     if (!doc.exists) return null;
     return Workout.fromMap(doc.id, doc.data()!);
+  }
+
+  Future<void> deleteAll() async {
+    final workouts = await getWorkouts();
+
+    await Future.wait(workouts.map((workout) => deleteWorkout(workout.id)));
   }
 }
