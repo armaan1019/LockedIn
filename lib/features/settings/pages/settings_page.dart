@@ -108,49 +108,53 @@ class _SettingsPageState extends State<SettingsPage> {
         likeRepository: context.read<LikeRepository>(),
       );
 
+      await Future.delayed(const Duration(milliseconds: 300));
+
       if (!mounted) return;
 
       context.read<SessionManager>().clearUser();
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text("Delete failed: $e"),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Delete failed: $e")));
     }
   }
 
   Future<String?> _showPasswordDialog() async {
-    final controller = TextEditingController();
-
-    final result = showDialog<String>(
+    return showDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirm Password'),
-        content: TextField(
-          controller: controller,
-          obscureText: true,
-          decoration: const InputDecoration(labelText: 'Password'),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context, controller.text);
-            },
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
+      builder: (context) {
+        final controller = TextEditingController();
 
-    controller.dispose();
-    return result;
+        return AlertDialog(
+          title: const Text('Confirm Password'),
+          content: TextField(
+            controller: controller,
+            obscureText: true,
+            decoration: const InputDecoration(labelText: 'Password'),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                controller.dispose();
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                final password = controller.text;
+                controller.dispose();
+                Navigator.pop(context, password);
+              },
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
