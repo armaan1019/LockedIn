@@ -87,6 +87,8 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (password == null) return;
 
+    if (!mounted) return;
+
     final session = context.read<SessionManager>();
 
     final user = session.currentUser;
@@ -104,21 +106,23 @@ class _SettingsPageState extends State<SettingsPage> {
       commentRepository: context.read<CommentRepository>(),
       likeRepository: context.read<LikeRepository>(),
     );
+
+    if (!mounted) return;
+
+    context.read<SessionManager>().clearUser();
   }
 
   Future<String?> _showPasswordDialog() async {
     final controller = TextEditingController();
 
-    return showDialog<String>(
+    final result = showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Password'),
         content: TextField(
           controller: controller,
           obscureText: true,
-          decoration: const InputDecoration(
-            labelText: 'Password',
-          ),
+          decoration: const InputDecoration(labelText: 'Password'),
         ),
         actions: [
           TextButton(
@@ -134,6 +138,9 @@ class _SettingsPageState extends State<SettingsPage> {
         ],
       ),
     );
+
+    controller.dispose();
+    return result;
   }
 
   @override

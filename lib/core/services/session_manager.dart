@@ -68,4 +68,9 @@ class SessionManager extends ChangeNotifier {
       newPassword: newPassword,
     );
   }
+
+  void clearUser() {
+    _currentUser = null;
+    notifyListeners();
+  }
 }
