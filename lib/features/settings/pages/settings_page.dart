@@ -97,19 +97,29 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (!mounted) return;
 
-    await context.read<AccountService>().deleteAccount(
-      user: user,
-      password: password,
-      workoutRepository: context.read<WorkoutRepository>(),
-      dietRepository: context.read<DietRepository>(),
-      postRepository: context.read<PostRepository>(),
-      commentRepository: context.read<CommentRepository>(),
-      likeRepository: context.read<LikeRepository>(),
-    );
+    try {
+      await context.read<AccountService>().deleteAccount(
+        user: user,
+        password: password,
+        workoutRepository: context.read<WorkoutRepository>(),
+        dietRepository: context.read<DietRepository>(),
+        postRepository: context.read<PostRepository>(),
+        commentRepository: context.read<CommentRepository>(),
+        likeRepository: context.read<LikeRepository>(),
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    context.read<SessionManager>().clearUser();
+      context.read<SessionManager>().clearUser();
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Delete failed: $e"),
+        ),
+      );
+    }
   }
 
   Future<String?> _showPasswordDialog() async {
