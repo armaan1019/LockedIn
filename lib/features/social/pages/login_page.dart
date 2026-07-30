@@ -34,17 +34,27 @@ class _LoginPageState extends State<LoginPage> {
       _error = null;
     });
 
-    final success = await context.read<SessionManager>().login(
-      _usernameController.text.trim(),
-      _passwordController.text.trim(),
-    );
+    try {
+      final success = await context.read<SessionManager>().login(
+        _usernameController.text.trim(),
+        _passwordController.text.trim(),
+      );
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() => _isLoading = false);
+      setState(() => _isLoading = false);
 
-    if (!success) {
-      setState(() => _error = "Invalid login");
+      if (!success) {
+        setState(() => _error = "Invalid login");
+      }
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() => _error = "Something went wrong!");
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 

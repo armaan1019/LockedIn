@@ -20,16 +20,24 @@ class AuthService {
 
     final email = usernameDoc.data()!['email'];
 
-    final cred = await _auth.signInWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+    try {
+      final cred = await _auth.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    final uid = cred.user!.uid;
+      final uid = cred.user!.uid;
 
-    final userDoc = await _firestore.collection('users').doc(uid).get();
+      final userDoc = await _firestore.collection('users').doc(uid).get();
 
-    return AppUser.fromMap(uid, userDoc.data()!);
+      return AppUser.fromMap(uid, userDoc.data()!);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'invalid-credential') {
+        return null;
+      }
+
+      rethrow;
+    }
   }
 
   Future<AppUser?> signUp({
@@ -102,22 +110,36 @@ class AuthService {
       throw Exception('No user logged in');
     }
 
-    final credential = EmailAuthProvider.credential(
-      email: email,
-      password: currentPassword,
-    );
-
-    await user.reauthenticateWithCredential(credential);
+    await reauthenticate(email: email, password: currentPassword);
 
     await user.updatePassword(newPassword);
   }
 
-  Future<void> deleteAccount() async {
-    final firebaseUser = _auth.currentUser;
-    if (firebaseUser == null) return;
+  Future<void> deleteFirebaseUser() async {
+    final user = _auth.currentUser;
 
-    final uid = firebaseUser.uid;
+    if (user == null) {
+      throw Exception('No user logged in.');
+    }
 
-    final userDoc = await _firestore.collection('users');
+    await user.delete();
+  }
+
+  Future<void> reauthenticate({
+    required String email,
+    required String password,
+  }) async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      throw Exception('No user logged in.');
+    }
+
+    final credential = EmailAuthProvider.credential(
+      email: email,
+      password: password,
+    );
+
+    await user.reauthenticateWithCredential(credential);
   }
 }

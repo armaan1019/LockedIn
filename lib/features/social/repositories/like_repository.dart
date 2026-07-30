@@ -50,4 +50,12 @@ class LikeRepository {
         .snapshots()
         .map((snapshot) => snapshot.docs.length);
   }
+
+  Future<void> deleteUserLikes(String userId) async {
+    final posts = await _firestore.collection('posts').get();
+
+    for (final post in posts.docs) {
+      await post.reference.collection('likes').doc(userId).delete();
+    }
+  }
 }

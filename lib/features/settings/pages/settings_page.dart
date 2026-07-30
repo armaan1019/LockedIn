@@ -8,6 +8,12 @@ import '../../../core/providers/theme_provider.dart';
 import '../../../core/providers/notification_provider.dart';
 import '../../profile/pages/edit_profile_page.dart';
 import '../../profile/pages/change_password_page.dart';
+import '../../../core/services/account_service.dart';
+import '../../workout/repositories/workout_repository.dart';
+import '../../diet/repositories/diet_repository.dart';
+import '../../social/repositories/post_repository.dart';
+import '../../social/repositories/comment_repository.dart';
+import '../../social/repositories/like_repository.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -53,26 +59,82 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Future<void> _showDeleteAccountDialog() async {
-      final shouldDelete = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Delete Account'),
-          content: const Text(
-            'This action cannot be undone. Are you sure you want to permanenetly delete your account',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Delete'),
-            ),
-          ],
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Account'),
+        content: const Text(
+          'This action cannot be undone. Are you sure you want to permanenetly delete your account',
         ),
-      );
-    }
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true) return;
+
+    if (!mounted) return;
+
+    final password = await _showPasswordDialog();
+
+    if (password == null) return;
+
+    final session = context.read<SessionManager>();
+
+    final user = session.currentUser;
+
+    if (user == null) return;
+
+    if (!mounted) return;
+
+    await context.read<AccountService>().deleteAccount(
+      user: user,
+      password: password,
+      workoutRepository: context.read<WorkoutRepository>(),
+      dietRepository: context.read<DietRepository>(),
+      postRepository: context.read<PostRepository>(),
+      commentRepository: context.read<CommentRepository>(),
+      likeRepository: context.read<LikeRepository>(),
+    );
+  }
+
+  Future<String?> _showPasswordDialog() async {
+    final controller = TextEditingController();
+
+    return showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirm Password'),
+        content: TextField(
+          controller: controller,
+          obscureText: true,
+          decoration: const InputDecoration(
+            labelText: 'Password',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context, controller.text);
+            },
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

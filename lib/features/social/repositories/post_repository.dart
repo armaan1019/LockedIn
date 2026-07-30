@@ -36,4 +36,33 @@ class PostRepository {
               .toList(),
         );
   }
+
+  Future<void> deleteUserPosts(String userId) async {
+    final posts = await _firestore
+        .collection('posts')
+        .where('userId', isEqualTo: userId)
+        .get();
+
+    for (final post in posts.docs) {
+      await _deletePost(post.reference);
+    }
+  }
+
+  Future<void> _deletePost(
+    DocumentReference<Map<String, dynamic>> postRef,
+  ) async {
+    final comments = await postRef.collection('comments').get();
+
+    for (final doc in comments.docs) {
+      await doc.reference.delete();
+    }
+
+    final likes = await postRef.collection('likes').get();
+
+    for (final doc in likes.docs) {
+      await doc.reference.delete();
+    }
+
+    await postRef.delete();
+  }
 }

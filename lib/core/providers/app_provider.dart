@@ -9,6 +9,10 @@ import '../../features/dashboard/repositories/stats_repository.dart';
 import 'notification_provider.dart';
 import 'theme_provider.dart';
 import '../../features/profile/repositories/profile_repository.dart';
+import '../services/account_service.dart';
+import '../../features/social/repositories/comment_repository.dart';
+import '../../features/social/repositories/post_repository.dart';
+import '../../features/social/repositories/like_repository.dart';
 
 List<SingleChildWidget> appProviders = [
   ChangeNotifierProvider(create: (_) => SessionManager()),
@@ -69,4 +73,12 @@ List<SingleChildWidget> appProviders = [
       return ProfileRepository(userId: userId);
     },
   ),
+
+  Provider(create: (_) => AccountService()),
+
+  Provider<PostRepository>(create: (_) => PostRepository()),
+
+  Provider<CommentRepository>(create: (_) => CommentRepository()),
+
+  Provider<LikeRepository>(create: (_) => LikeRepository()),
 ];
