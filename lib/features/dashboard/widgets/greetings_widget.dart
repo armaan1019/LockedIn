@@ -5,17 +5,41 @@ class GreetingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: const [
+      children: [
         Text(
           'Welcome back 👋',
-          style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.bold,
+            letterSpacing: -0.5,
+          ),
         ),
-        SizedBox(height: 4),
-        Text(
-          'Let’s crush today’s goals',
-          style: TextStyle(fontSize: 16, color: Colors.grey),
+
+        const SizedBox(height: 6),
+
+        Row(
+          children: [
+            Icon(
+              Icons.local_fire_department,
+              size: 20,
+              color: colorScheme.primary,
+            ),
+
+            const SizedBox(width: 6),
+
+            Text(
+              'Stay consistent. Keep pushing forward.',
+              style: TextStyle(
+                fontSize: 15,
+                color: colorScheme.onSurfaceVariant,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ],
     );
