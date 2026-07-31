@@ -15,6 +15,7 @@ class MyApp extends StatelessWidget {
     return Consumer<SessionManager>(
       builder: (context, session, _) {
         return MaterialApp(
+          key: ValueKey(session.isLoggedIn),
           debugShowCheckedModeBanner: false,
           title: 'Workout App',
           theme: AppTheme.lightTheme,

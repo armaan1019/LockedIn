@@ -22,17 +22,20 @@ class AccountService {
       password: password,
     );
 
-    await workoutRepository.deleteAll();
-    await dietRepository.deleteAll();
-    await likeRepository.deleteUserLikes(user.id);
-    await commentRepository.deleteUserComments(user.id);
-    await postRepository.deleteUserPosts(user.id);
+    await Future.wait([
+      workoutRepository.deleteAll(),
+      dietRepository.deleteAll(),
+      likeRepository.deleteUserLikes(user.id),
+      commentRepository.deleteUserComments(user.id),
+      postRepository.deleteUserPosts(user.id),
+    ]);
 
     final firestore = FirebaseFirestore.instance;
 
-    await firestore.collection('users').doc(user.id).delete();
-
-    await firestore.collection('usernames').doc(user.username).delete();
+    await Future.wait([
+      firestore.collection('users').doc(user.id).delete(),
+      firestore.collection('usernames').doc(user.username).delete(),
+    ]);
 
     await AuthService.instance.deleteFirebaseUser();
   }
