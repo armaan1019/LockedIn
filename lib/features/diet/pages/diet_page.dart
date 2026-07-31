@@ -317,64 +317,128 @@ class _DietPageState extends State<DietPage> {
             children: [
               const Text(
                 'Your Diet',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.chevron_left),
-                    onPressed: () => _changeDate(-1),
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
                   ),
-
-                  InkWell(
-                    onTap: _pickDate,
-                    borderRadius: BorderRadius.circular(8),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      child: Row(
-                        children: [
-                          Text(
-                            formattedDate,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          const Icon(Icons.calendar_month),
-                        ],
-                      ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .outline
+                          .withValues(alpha: 0.35),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.chevron_right),
-                    onPressed: () => _changeDate(1),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Card(
-                elevation: 2,
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      MacroInfo(
-                        label: 'Calories',
-                        value: totalCalories.toString(),
+                      IconButton(
+                        icon: const Icon(Icons.chevron_left),
+                        onPressed: () => _changeDate(-1),
+                        visualDensity: VisualDensity.compact,
                       ),
-                      MacroInfo(label: 'Protein', value: '${totalProtein}g'),
-                      MacroInfo(label: 'Carbs', value: '${totalCarbs}g'),
-                      MacroInfo(label: 'Fat', value: '${totalFat}g'),
+
+                      InkWell(
+                        onTap: _pickDate,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.calendar_month,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 22,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                formattedDate,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      IconButton(
+                        icon: const Icon(Icons.chevron_right),
+                        onPressed: () => _changeDate(1),
+                        visualDensity: VisualDensity.compact,
+                      ),
                     ],
                   ),
+                ),
+              ),
+
+              const SizedBox(height: 20),
+
+              const Text(
+                'Macros',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 16,
+                  horizontal: 12,
+                ),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .outline
+                        .withValues(alpha: 0.35),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    MacroInfo(
+                      label: 'Calories',
+                      value: totalCalories.toString(),
+                      icon: Icons.local_fire_department,
+                      color: Colors.orange,
+                    ),
+                    MacroInfo(
+                      label: 'Protein',
+                      value: '${totalProtein}g',
+                      icon: Icons.fitness_center,
+                      color: Colors.blue,
+                    ),
+                    MacroInfo(
+                      label: 'Carbs',
+                      value: '${totalCarbs}g',
+                      icon: Icons.grain,
+                      color: Colors.green,
+                    ),
+                    MacroInfo(
+                      label: 'Fat',
+                      value: '${totalFat}g',
+                      icon: Icons.opacity,
+                      color: Colors.purple,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 16),
