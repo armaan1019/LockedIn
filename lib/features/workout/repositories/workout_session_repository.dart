@@ -16,6 +16,7 @@ class WorkoutSessionRepository {
   ) async {
     final snapshot = await _workoutSessions
         .where('workoutId', isEqualTo: workoutId)
+        .orderBy('date', descending: true)
         .get();
 
     return snapshot.docs

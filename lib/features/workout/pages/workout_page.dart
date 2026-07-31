@@ -33,12 +33,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
     await workoutRepo.updateWorkout(workout);
     await _loadWorkouts();
 
+    if (!mounted) return;
+
     Navigator.pop(context);
   }
 
   Future<void> _deleteWorkout(String id) async {
     final workoutRepo = context.read<WorkoutRepository?>();
-    
+
     if (workoutRepo == null) return;
 
     await workoutRepo.deleteWorkout(id);
@@ -47,7 +49,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   Future<void> _loadWorkouts() async {
     final workoutRepo = context.read<WorkoutRepository?>();
-    
+
     if (workoutRepo == null) return;
 
     final loaded = await workoutRepo.getWorkouts();
@@ -60,7 +62,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   Future<void> _startWorkout(Workout workout) async {
     final workoutSessionsRepo = context.read<WorkoutSessionRepository?>();
-    
+
     if (workoutSessionsRepo == null) return;
 
     final result = await Navigator.push(
@@ -77,11 +79,13 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   Future<void> _addWorkout(Workout workout) async {
     final workoutRepo = context.read<WorkoutRepository?>();
-    
+
     if (workoutRepo == null) return;
 
     await workoutRepo.addWorkout(workout);
     await _loadWorkouts();
+
+    if (!mounted) return;
     Navigator.pop(context);
   }
 
@@ -100,12 +104,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
   Future<void> _showPastWorkouts(Workout workout) async {
     final workoutSessionsRepo = context.read<WorkoutSessionRepository?>();
-    
+
     if (workoutSessionsRepo == null) return;
 
     final pastSessions = await workoutSessionsRepo.getPastWorkoutsByWorkoutId(
       workout.id,
     );
+
+    if (!mounted) return;
 
     showModalBottomSheet(
       context: context,
