@@ -110,8 +110,15 @@ class _CommentsSheetState extends State<CommentsSheet> {
 
         /// add comment input
         SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(12),
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(
+              left: 12,
+              right: 12,
+              top: 12,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+            ),
             child: Row(
               children: [
                 Expanded(

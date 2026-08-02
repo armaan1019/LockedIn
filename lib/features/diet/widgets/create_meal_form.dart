@@ -62,179 +62,189 @@ class _CreateMealFormState extends State<CreateMealForm> {
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+
     return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Create Meal',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
+      padding: EdgeInsets.only(
+        left: 16,
+        right: 16,
+        top: 16,
+        bottom: bottomInset + 16,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Create Meal',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
 
-          TextField(
-            controller: _mealNameController,
-            decoration: const InputDecoration(labelText: 'Meal Name'),
-          ),
+            TextField(
+              controller: _mealNameController,
+              decoration: const InputDecoration(labelText: 'Meal Name'),
+            ),
 
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          const Text(
-            'Ingredients',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
+            const Text(
+              'Ingredients',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
 
-          ..._ingredients.asMap().entries.map((entry) {
-            final index = entry.key;
-            final ingredient = entry.value;
+            ..._ingredients.asMap().entries.map((entry) {
+              final index = entry.key;
+              final ingredient = entry.value;
 
-            return ListTile(
-              title: Text(ingredient.name),
-              subtitle: Text(
-                '${ingredient.servings.toStringAsFixed(1)} servings',
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text('${ingredient.calories} cal'),
-                  IconButton(
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    onPressed: () async {
-                      final confirm = await showDialog<bool>(
-                        context: context,
-                        builder: (_) => AlertDialog(
-                          title: const Text('Remove ingredient?'),
-                          content: Text('Remove ${ingredient.name}?'),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.pop(context, false),
-                              child: const Text('Cancel'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () => Navigator.pop(context, true),
-                              child: const Text('Remove'),
-                            ),
-                          ],
-                        ),
-                      );
+              return ListTile(
+                title: Text(ingredient.name),
+                subtitle: Text(
+                  '${ingredient.servings.toStringAsFixed(1)} servings',
+                ),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('${ingredient.calories} cal'),
+                    IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: const Text('Remove ingredient?'),
+                            content: Text('Remove ${ingredient.name}?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, false),
+                                child: const Text('Cancel'),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => Navigator.pop(context, true),
+                                child: const Text('Remove'),
+                              ),
+                            ],
+                          ),
+                        );
 
-                      if (confirm == true) {
-                        setState(() {
-                          _ingredients.removeAt(index);
-                        });
-                      }
-                    },
-                  ),
-                ],
-              ),
-            );
-          }),
-          TextButton.icon(
-            icon: const Icon(Icons.add),
-            label: const Text('Add Ingredient'),
-            onPressed: () async {
-              // Open the manual ingredient entry screen
-              final ingredient = await showModalBottomSheet<Ingredient>(
-                context: context,
-                isScrollControlled: true,
-                builder: (_) => AddIngredientForm(),
-              );
-
-              if (ingredient != null) {
-                WidgetsBinding.instance.addPostFrameCallback((_) {
-                  setState(() {
-                    _ingredients.add(ingredient);
-                  });
-                });
-              }
-            },
-          ),
-          TextButton.icon(
-            icon: const Icon(Icons.search),
-            label: const Text('Look up ingredient'),
-            onPressed: () async {
-              final queryController = TextEditingController();
-
-              // Ask the user for a search query
-              final query = await showDialog<String>(
-                context: context,
-                builder: (_) => AlertDialog(
-                  title: const Text('Search food'),
-                  content: TextField(
-                    controller: queryController,
-                    decoration: const InputDecoration(labelText: 'Food name'),
-                  ),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () =>
-                          Navigator.pop(context, queryController.text),
-                      child: const Text('Search'),
+                        if (confirm == true) {
+                          setState(() {
+                            _ingredients.removeAt(index);
+                          });
+                        }
+                      },
                     ),
                   ],
                 ),
               );
+            }),
+            TextButton.icon(
+              icon: const Icon(Icons.add),
+              label: const Text('Add Ingredient'),
+              onPressed: () async {
+                // Open the manual ingredient entry screen
+                final ingredient = await showModalBottomSheet<Ingredient>(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (_) => AddIngredientForm(),
+                );
 
-              if (query == null || query.isEmpty) return;
+                if (ingredient != null) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    setState(() {
+                      _ingredients.add(ingredient);
+                    });
+                  });
+                }
+              },
+            ),
+            TextButton.icon(
+              icon: const Icon(Icons.search),
+              label: const Text('Look up ingredient'),
+              onPressed: () async {
+                final queryController = TextEditingController();
 
-              // Open FoodSearchPage and wait for an Ingredient
-              final ingredient = await Navigator.push<Ingredient>(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => FoodSearchPage(query: query.trim()),
-                ),
-              );
-
-              if (ingredient != null) {
-                setState(() {
-                  _ingredients.add(ingredient);
-                });
-              }
-            },
-          ),
-          const SizedBox(height: 12),
-
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton(
-                  onPressed: _saveMeal,
-                  child: Text(
-                    widget.isEditing ? 'Save Changes' : 'Add to Today',
+                // Ask the user for a search query
+                final query = await showDialog<String>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: const Text('Search food'),
+                    content: TextField(
+                      controller: queryController,
+                      decoration: const InputDecoration(labelText: 'Food name'),
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Cancel'),
+                      ),
+                      ElevatedButton(
+                        onPressed: () =>
+                            Navigator.pop(context, queryController.text),
+                        child: const Text('Search'),
+                      ),
+                    ],
                   ),
-                ),
-              ),
+                );
 
-              const SizedBox(width: 8),
-              if (!widget.isEditing)
+                if (query == null || query.isEmpty) return;
+
+                // Open FoodSearchPage and wait for an Ingredient
+                final ingredient = await Navigator.push<Ingredient>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => FoodSearchPage(query: query.trim()),
+                  ),
+                );
+
+                if (ingredient != null) {
+                  setState(() {
+                    _ingredients.add(ingredient);
+                  });
+                }
+              },
+            ),
+            const SizedBox(height: 12),
+
+            Row(
+              children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () {
-                      if (widget.onSaveTemplate == null) return;
-                      if (_mealNameController.text.isEmpty ||
-                          _ingredients.isEmpty)
-                        return;
-
-                      final meal = Meal(
-                        name: _mealNameController.text,
-                        ingredients: List.from(_ingredients),
-                      );
-
-                      final savedMeal = SavedMeal(mealId: '', meal: meal);
-
-                      widget.onSaveTemplate!(savedMeal);
-                      Navigator.pop(context);
-                    },
-                    child: const Text('Save Template'),
+                    onPressed: _saveMeal,
+                    child: Text(
+                      widget.isEditing ? 'Save Changes' : 'Add to Today',
+                    ),
                   ),
                 ),
-            ],
-          ),
-        ],
+
+                const SizedBox(width: 8),
+                if (!widget.isEditing)
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (widget.onSaveTemplate == null) return;
+                        if (_mealNameController.text.isEmpty ||
+                            _ingredients.isEmpty) {
+                          return;
+                        }
+
+                        final meal = Meal(
+                          name: _mealNameController.text,
+                          ingredients: List.from(_ingredients),
+                        );
+
+                        final savedMeal = SavedMeal(mealId: '', meal: meal);
+
+                        widget.onSaveTemplate!(savedMeal);
+                        Navigator.pop(context);
+                      },
+                      child: const Text('Save Template'),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

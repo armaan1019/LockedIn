@@ -60,19 +60,16 @@ class _PostCardState extends State<PostCard> {
     if (userId == null) return;
 
     try {
-      await _likesRepo.toggleLike(
-        postId: widget.post.id,
-        userId: userId,
-      );
+      await _likesRepo.toggleLike(postId: widget.post.id, userId: userId);
 
       setState(() {
         _liked = !_liked;
       });
     } catch (_) {
+      if (!mounted) return;
+      
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to like post. Please try again.'),
-        ),
+        const SnackBar(content: Text('Failed to like post. Please try again.')),
       );
     }
   }
@@ -90,13 +87,9 @@ class _PostCardState extends State<PostCard> {
           builder: (context, scrollController) {
             return Container(
               decoration: const BoxDecoration(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: CommentsSheet(
-                postId: widget.post.id,
-              ),
+              child: CommentsSheet(postId: widget.post.id),
             );
           },
         );
@@ -113,9 +106,7 @@ class _PostCardState extends State<PostCard> {
       margin: const EdgeInsets.symmetric(vertical: 8),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
-        side: BorderSide(
-          color: Colors.grey.shade200,
-        ),
+        side: BorderSide(color: Colors.grey.shade200),
       ),
       clipBehavior: Clip.antiAlias,
       child: Padding(
@@ -123,7 +114,6 @@ class _PostCardState extends State<PostCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             /// HEADER
             Row(
               children: [
@@ -173,18 +163,12 @@ class _PostCardState extends State<PostCard> {
             /// POST CONTENT
             Text(
               widget.post.content,
-              style: const TextStyle(
-                fontSize: 15,
-                height: 1.45,
-              ),
+              style: const TextStyle(fontSize: 15, height: 1.45),
             ),
 
             const SizedBox(height: 16),
 
-            Divider(
-              color: Colors.grey.shade300,
-              height: 1,
-            ),
+            Divider(color: Colors.grey.shade300, height: 1),
 
             const SizedBox(height: 4),
 
@@ -197,12 +181,8 @@ class _PostCardState extends State<PostCard> {
                     initialData: 0,
                     builder: (context, snapshot) {
                       return _PostActionButton(
-                        icon: _liked
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: _liked
-                            ? Colors.red
-                            : Colors.grey.shade700,
+                        icon: _liked ? Icons.favorite : Icons.favorite_border,
+                        color: _liked ? Colors.red : Colors.grey.shade700,
                         label: "${snapshot.data ?? 0}",
                         onTap: _toggleLike,
                       );
@@ -212,7 +192,9 @@ class _PostCardState extends State<PostCard> {
 
                 Expanded(
                   child: StreamBuilder<int>(
-                    stream: _commentsRepo.getTotalCommentsForPost(widget.post.id),
+                    stream: _commentsRepo.getTotalCommentsForPost(
+                      widget.post.id,
+                    ),
                     initialData: 0,
                     builder: (context, snapshot) {
                       return _PostActionButton(
@@ -252,24 +234,15 @@ class _PostActionButton extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 12,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 20,
-              color: color,
-            ),
+            Icon(icon, size: 20, color: color),
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w500,
-                fontSize: 14,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
             ),
           ],
         ),
