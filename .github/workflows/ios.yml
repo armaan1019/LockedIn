@@ -12,7 +12,7 @@ jobs:
     env:
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-      APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+      APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
     steps:
@@ -44,12 +44,6 @@ jobs:
         run: |
           cd ios
           bundle install
-
-      - name: Build IPA
-        run: flutter build ipa --release
-
-      - name: Check Fastlane
-        run: fastlane --version
 
       - name: Upload to TestFlight
         run: |
