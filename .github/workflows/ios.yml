@@ -26,6 +26,10 @@ jobs:
         run: |
           echo "USDA_API_KEY=${{ secrets.USDA_API_KEY }}" > .env
 
+      - name: Create firebase_options.dart
+        run: |
+          echo "${{ secrets.FIREBASE_OPTIONS_DART }}"" > lib/firebase_options.dart
+
       - run: flutter pub get
 
       - run: flutter analyze
