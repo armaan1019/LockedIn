@@ -12,7 +12,7 @@ jobs:
     env:
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-      APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
       MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
     steps:
@@ -45,11 +45,6 @@ jobs:
           cd ios
           bundle install
 
-      - name: Install signing certificates
-        run: |
-          cd ios
-          bundle exec fastlane match appstore readonly:true
-
       - name: Build IPA
         run: flutter build ipa --release
 
@@ -59,4 +54,4 @@ jobs:
       - name: Upload to TestFlight
         run: |
           cd ios
-          fastlane beta
+          bundle exec fastlane beta
