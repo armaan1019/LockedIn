@@ -1,0 +1,8 @@
+app_identifier("com.armaan.lockedIn") # The bundle identifier of your app
+apple_id("armaan192004@gmail.com") # Your Apple Developer Portal username
+
+itc_team_id("129203507") # App Store Connect Team ID
+team_id("CJ4N8A5QSF") # Developer Portal Team ID
+
+# For more information about the Appfile, see:
+#     https://docs.fastlane.tools/advanced/#appfile

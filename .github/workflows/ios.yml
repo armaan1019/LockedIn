@@ -1,0 +1,47 @@
+name: iOS CI/CD
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    env:
+      APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+      APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+      APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.35.7'
+          channel: stable
+
+      - name: Create .env
+        run: |
+          echo "USDA_API_KEY=${{ secrets.USDA_API_KEY }}" > .env
+
+      - run: flutter pub get
+
+      - run: flutter analyze
+
+      - name: Install CocoaPods
+        run: |
+          cd ios
+          pod install --repo-update
+
+      - name: Build IPA
+        run: flutter build ipa --release
+
+      - name: Check Fastlane
+        run: fastlane --version
+
+      - name: Upload to TestFlight
+        run: |
+          cd ios
+          fastlane beta
