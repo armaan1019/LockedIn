@@ -13,6 +13,7 @@ jobs:
       APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
       APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
       APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+      MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
 
     steps:
       - uses: actions/checkout@v4
@@ -38,6 +39,16 @@ jobs:
         run: |
           cd ios
           pod install --repo-update
+
+      - name: Install Ruby dependencies
+        run: |
+          cd ios
+          bundle install
+
+      - name: Install signing certificates
+        run: |
+          cd ios
+          bundle exec fastlane match appstore readonly:true
 
       - name: Build IPA
         run: flutter build ipa --release
