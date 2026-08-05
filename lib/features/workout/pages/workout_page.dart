@@ -19,6 +19,8 @@ class WorkoutPage extends StatefulWidget {
 class _WorkoutPageState extends State<WorkoutPage> {
   final List<Workout> _workouts = [];
 
+  bool _isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -52,11 +54,14 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
     if (workoutRepo == null) return;
 
+    setState(() => _isLoading = true);
+
     final loaded = await workoutRepo.getWorkouts();
 
     setState(() {
       _workouts.clear();
       _workouts.addAll(loaded);
+      _isLoading = false;
     });
   }
 
@@ -138,7 +143,37 @@ class _WorkoutPageState extends State<WorkoutPage> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: ListView.builder(
+                child: _isLoading ? const Center(
+                  child: CircularProgressIndicator(),
+                )
+                : _workouts.isEmpty ? Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.fitness_center,
+                        size: 72,
+                        color: Theme.of(context).colorScheme.outline
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No workouts yet',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Tap the + button below to create your first workout.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+                : ListView.builder(
                   padding: const EdgeInsets.only(bottom: 96),
                   itemCount: _workouts.length,
                   itemBuilder: (context, index) {

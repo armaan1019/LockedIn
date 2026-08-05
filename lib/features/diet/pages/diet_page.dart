@@ -23,6 +23,7 @@ class _DietPageState extends State<DietPage> {
   final List<MealEntry> _meals = [];
   final List<SavedMeal> _savedMeals = [];
   DateTime _selectedDate = DateTime.now();
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -31,7 +32,13 @@ class _DietPageState extends State<DietPage> {
   }
 
   Future<void> _initPage() async {
-    await Future.wait([_loadMealsForSelectedDate(), _loadSavedMeals()]);
+    try {
+      await Future.wait([_loadMealsForSelectedDate(), _loadSavedMeals()]);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   String get formattedDate {
@@ -310,17 +317,17 @@ class _DietPageState extends State<DietPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: Padding(
+        child: _isLoading ? const Center(
+          child: CircularProgressIndicator(),
+        )
+        : Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'Your Diet',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 12),
 
@@ -333,10 +340,9 @@ class _DietPageState extends State<DietPage> {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .outline
-                          .withValues(alpha: 0.35),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.35),
                     ),
                   ),
                   child: Row(
@@ -390,10 +396,7 @@ class _DietPageState extends State<DietPage> {
 
               const Text(
                 'Macros',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
 
               const SizedBox(height: 12),
@@ -406,10 +409,9 @@ class _DietPageState extends State<DietPage> {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(18),
                   border: Border.all(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .outline
-                        .withValues(alpha: 0.35),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outline.withValues(alpha: 0.35),
                   ),
                 ),
                 child: Row(
