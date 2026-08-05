@@ -235,133 +235,183 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
   Widget build(BuildContext context) {
     final currentExercise = exerciseSessions[currentExerciseIndex];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.workout.title),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'history':
-                  _showPreviousWorkouts();
-                  break;
-                case 'workout':
-                  _showWorkout();
-                  break;
-              }
-            },
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 'history', child: Text('Previous Workouts')),
-              PopupMenuItem(value: 'workout', child: Text('View Workout')),
-            ],
-          ),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            Text(
-              currentExercise.name,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: currentExercise.sets.length,
-                itemBuilder: (context, index) {
-                  final set = currentExercise.sets[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
-                    child: ListTile(
-                      leading: Text('Set ${index + 1}'),
-                      title: Text('${set.reps} reps'),
-                      subtitle: set.weight != null
-                          ? Text('${set.weight} lbs')
-                          : const Text('No weight'),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _editSet(set),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => _deleteSet(index),
-                          ),
-                        ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        final shouldLeave = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Leave Workout?'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Your workout is still in progress. Are you sure you want to leave?',
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Continue'),
                       ),
                     ),
-                  );
-                },
-              ),
-            ),
-            TextField(
-              controller: _repsController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Reps',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _weightController,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Weight (optional)',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                // PREVIOUS (left)
-                Expanded(
-                  child: currentExerciseIndex > 0
-                      ? OutlinedButton(
-                          onPressed: () {
-                            setState(() {
-                              currentExerciseIndex--;
-                            });
-                          },
-                          child: const Text('Previous'),
-                        )
-                      : const SizedBox(),
-                ),
-
-                const SizedBox(width: 12),
-
-                // ADD SET (center)
-                Expanded(
-                  child: OutlinedButton(
-                    onPressed: _addSet,
-                    child: const Text('Add Set'),
-                  ),
-                ),
-
-                const SizedBox(width: 12),
-
-                // NEXT / FINISH (right)
-                Expanded(
-                  child: currentExerciseIndex < exerciseSessions.length - 1
-                      ? OutlinedButton(
-                          onPressed: _nextExercise,
-                          child: const Text('Next'),
-                        )
-                      : ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green, // visually different
-                          ),
-                          onPressed: _finishWorkout,
-                          child: const Text('Finish Workout'),
-                        ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Leave'),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+          ),
+        );
+
+        if (shouldLeave == true && mounted) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.workout.title),
+          actions: [
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'history':
+                    _showPreviousWorkouts();
+                    break;
+                  case 'workout':
+                    _showWorkout();
+                    break;
+                }
+              },
+              itemBuilder: (context) => const [
+                PopupMenuItem(
+                  value: 'history',
+                  child: Text('Previous Workouts'),
+                ),
+                PopupMenuItem(value: 'workout', child: Text('View Workout')),
+              ],
+            ),
           ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              Text(
+                currentExercise.name,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Expanded(
+                child: ListView.builder(
+                  itemCount: currentExercise.sets.length,
+                  itemBuilder: (context, index) {
+                    final set = currentExercise.sets[index];
+                    return Card(
+                      margin: const EdgeInsets.symmetric(vertical: 4),
+                      child: ListTile(
+                        leading: Text('Set ${index + 1}'),
+                        title: Text('${set.reps} reps'),
+                        subtitle: set.weight != null
+                            ? Text('${set.weight} lbs')
+                            : const Text('No weight'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _editSet(set),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () => _deleteSet(index),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              TextField(
+                controller: _repsController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Reps',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _weightController,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Weight (optional)',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                children: [
+                  // PREVIOUS (left)
+                  Expanded(
+                    child: currentExerciseIndex > 0
+                        ? OutlinedButton(
+                            onPressed: () {
+                              setState(() {
+                                currentExerciseIndex--;
+                              });
+                            },
+                            child: const Text('Previous'),
+                          )
+                        : const SizedBox(),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // ADD SET (center)
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: _addSet,
+                      child: const Text('Add Set'),
+                    ),
+                  ),
+
+                  const SizedBox(width: 12),
+
+                  // NEXT / FINISH (right)
+                  Expanded(
+                    child: currentExerciseIndex < exerciseSessions.length - 1
+                        ? OutlinedButton(
+                            onPressed: _nextExercise,
+                            child: const Text('Next'),
+                          )
+                        : ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor:
+                                  Colors.green, // visually different
+                            ),
+                            onPressed: _finishWorkout,
+                            child: const Text('Finish Workout'),
+                          ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
       ),
     );
