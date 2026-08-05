@@ -139,6 +139,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
               const SizedBox(height: 16),
               Expanded(
                 child: ListView.builder(
+                  padding: const EdgeInsets.only(bottom: 96),
                   itemCount: _workouts.length,
                   itemBuilder: (context, index) {
                     final w = _workouts[index];
