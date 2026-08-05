@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'workout_summary_page.dart';
 import '../models/workout.dart';
 import '../models/workout_session.dart';
 import '../models/set_entry.dart';
 import '../models/exercise_session.dart';
+import '../widgets/past_workout_sheet.dart';
+import '../repositories/workout_session_repository.dart';
 
 class WorkoutTrackerPage extends StatefulWidget {
   final Workout workout;
@@ -46,6 +49,92 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     _repsController.dispose();
     _weightController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showPreviousWorkouts() async {
+    final repo = context.read<WorkoutSessionRepository>();
+
+    final sessions = await repo.getPastWorkoutsByWorkoutId(widget.workout.id);
+
+    if (!mounted) return;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.9,
+        child: PastWorkoutsSheet(sessions: sessions),
+      ),
+    );
+  }
+
+  void _showWorkout() {
+    final theme = Theme.of(context);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => FractionallySizedBox(
+        heightFactor: 0.9,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(
+              widget.workout.title,
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            const SizedBox(height: 6),
+
+            Text(
+              '${widget.workout.exercises.length} exercises',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            ...widget.workout.exercises.map(
+              (exercise) => Card(
+                margin: const EdgeInsets.only(bottom: 14),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.fitness_center,
+                        color: theme.colorScheme.primary,
+                      ),
+
+                      const SizedBox(width: 14),
+
+                      Expanded(
+                        child: Text(
+                          exercise.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+
+                      Text(
+                        '${exercise.sets} × ${exercise.reps}',
+                        style: theme.textTheme.bodyMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _addSet() {
@@ -147,7 +236,27 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     final currentExercise = exerciseSessions[currentExerciseIndex];
 
     return Scaffold(
-      appBar: AppBar(title: Text(widget.workout.title)),
+      appBar: AppBar(
+        title: Text(widget.workout.title),
+        actions: [
+          PopupMenuButton<String>(
+            onSelected: (value) {
+              switch (value) {
+                case 'history':
+                  _showPreviousWorkouts();
+                  break;
+                case 'workout':
+                  _showWorkout();
+                  break;
+              }
+            },
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 'history', child: Text('Previous Workouts')),
+              PopupMenuItem(value: 'workout', child: Text('View Workout')),
+            ],
+          ),
+        ],
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

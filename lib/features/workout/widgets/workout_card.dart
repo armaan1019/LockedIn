@@ -104,8 +104,8 @@ class WorkoutCard extends StatelessWidget {
 
                   if (onDelete != null)
                     PopupMenuItem(
-                      child: const Text("Delete Workout"),
                       onTap: onDelete,
+                      child: const Text("Delete Workout"),
                     ),
                 ],
               ),
