@@ -63,6 +63,10 @@ class DietRepository {
     });
   }
 
+  Future<void> deleteSavedMeal(String mealId) async {
+    await _savedMeals.doc(mealId).delete();
+  }
+
   Future<void> deleteMealEntry(String entryId) async {
     await _dietEntries.doc(entryId).delete();
   }

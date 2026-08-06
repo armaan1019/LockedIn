@@ -245,6 +245,13 @@ class _DietPageState extends State<DietPage> {
     await _loadMealsForSelectedDate();
   }
 
+  Future<void> _deleteSavedMeal(SavedMeal savedMeal) async {
+    final dietRepo = context.read<DietRepository>();
+
+    await dietRepo.deleteSavedMeal(savedMeal.mealId);
+    await _loadSavedMeals();
+  }
+
   void _showCreateMealSheet() {
     showModalBottomSheet(
       context: context,
@@ -293,11 +300,13 @@ class _DietPageState extends State<DietPage> {
                 title: const Text('Use saved meal'),
                 onTap: () async {
                   Navigator.pop(context);
-
                   final selectedMeal = await Navigator.push<SavedMeal>(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => SavedMealsPage(savedMeals: _savedMeals),
+                      builder: (_) => SavedMealsPage(
+                        savedMeals: _savedMeals,
+                        onDelete: _deleteSavedMeal,
+                      ),
                     ),
                   );
 
@@ -317,155 +326,165 @@ class _DietPageState extends State<DietPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SafeArea(
-        child: _isLoading ? const Center(
-          child: CircularProgressIndicator(),
-        )
-        : Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Your Diet',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withValues(alpha: 0.35),
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.chevron_left),
-                        onPressed: () => _changeDate(-1),
-                        visualDensity: VisualDensity.compact,
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Your Diet',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
+                    ),
+                    const SizedBox(height: 12),
 
-                      InkWell(
-                        onTap: _pickDate,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_month,
-                                color: Theme.of(context).colorScheme.primary,
-                                size: 22,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                formattedDate,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.outline.withValues(alpha: 0.35),
                           ),
                         ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.chevron_left),
+                              onPressed: () => _changeDate(-1),
+                              visualDensity: VisualDensity.compact,
+                            ),
+
+                            InkWell(
+                              onTap: _pickDate,
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.calendar_month,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      formattedDate,
+                                      style: const TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right),
+                              onPressed: () => _changeDate(1),
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
                       ),
+                    ),
 
-                      IconButton(
-                        icon: const Icon(Icons.chevron_right),
-                        onPressed: () => _changeDate(1),
-                        visualDensity: VisualDensity.compact,
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      'Macros',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 20),
-
-              const Text(
-                'Macros',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-
-              const SizedBox(height: 12),
-
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 16,
-                  horizontal: 12,
-                ),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.outline.withValues(alpha: 0.35),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    MacroInfo(
-                      label: 'Calories',
-                      value: totalCalories.toString(),
-                      icon: Icons.local_fire_department,
-                      color: Colors.orange,
                     ),
-                    MacroInfo(
-                      label: 'Protein',
-                      value: '${totalProtein}g',
-                      icon: Icons.fitness_center,
-                      color: Colors.blue,
+
+                    const SizedBox(height: 12),
+
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 16,
+                        horizontal: 12,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withValues(alpha: 0.35),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          MacroInfo(
+                            label: 'Calories',
+                            value: totalCalories.toString(),
+                            icon: Icons.local_fire_department,
+                            color: Colors.orange,
+                          ),
+                          MacroInfo(
+                            label: 'Protein',
+                            value: '${totalProtein}g',
+                            icon: Icons.fitness_center,
+                            color: Colors.blue,
+                          ),
+                          MacroInfo(
+                            label: 'Carbs',
+                            value: '${totalCarbs}g',
+                            icon: Icons.grain,
+                            color: Colors.green,
+                          ),
+                          MacroInfo(
+                            label: 'Fat',
+                            value: '${totalFat}g',
+                            icon: Icons.opacity,
+                            color: Colors.purple,
+                          ),
+                        ],
+                      ),
                     ),
-                    MacroInfo(
-                      label: 'Carbs',
-                      value: '${totalCarbs}g',
-                      icon: Icons.grain,
-                      color: Colors.green,
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Meals',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                    MacroInfo(
-                      label: 'Fat',
-                      value: '${totalFat}g',
-                      icon: Icons.opacity,
-                      color: Colors.purple,
+                    const SizedBox(height: 12),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: _meals.length,
+                        itemBuilder: (context, index) {
+                          final mealEntry = _meals[index];
+                          return MealCard(
+                            mealEntry: mealEntry,
+                            index: index,
+                            onDelete: _deleteMeal,
+                            onEdit: (i, m) => _openEditSheet(i, m),
+                          );
+                        },
+                      ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'Meals',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _meals.length,
-                  itemBuilder: (context, index) {
-                    final mealEntry = _meals[index];
-                    return MealCard(
-                      mealEntry: mealEntry,
-                      index: index,
-                      onDelete: _deleteMeal,
-                      onEdit: (i, m) => _openEditSheet(i, m),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        ),
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _showAddOptionsSheet,
