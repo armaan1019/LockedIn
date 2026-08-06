@@ -404,7 +404,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
                                   Colors.green, // visually different
                             ),
                             onPressed: _finishWorkout,
-                            child: const Text('Finish Workout'),
+                            child: const Text('Finish'),
                           ),
                   ),
                 ],

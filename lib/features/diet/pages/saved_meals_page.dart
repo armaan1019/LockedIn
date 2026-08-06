@@ -51,6 +51,10 @@ class _SavedMealsPageState extends State<SavedMealsPage> {
             setState(() {
               _savedMeals[index] = updatedSavedMeal;
             });
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('${updatedSavedMeal.meal.name} updated')),
+            );
           },
         ),
       ),
@@ -81,13 +85,56 @@ class _SavedMealsPageState extends State<SavedMealsPage> {
                       _showEditMealSheet(index, saved);
                       break;
                     case 'delete':
-                      await widget.onDelete(saved);
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (dialogContext) => AlertDialog(
+                          title: const Text('Delete saved meal?'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Are you sure you want to delete "${saved.meal.name}"?',
+                              ),
+                              const SizedBox(height: 24),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: OutlinedButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext, false),
+                                      child: const Text('Cancel'),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: FilledButton(
+                                      onPressed: () =>
+                                          Navigator.pop(dialogContext, true),
+                                      child: const Text('Delete'),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
 
-                      if (!mounted) return;
+                      if (confirm == true) {
+                        await widget.onDelete(saved);
 
-                      setState(() {
-                        _savedMeals.removeAt(index);
-                      });
+                        if (!mounted) return;
+
+                        setState(() {
+                          _savedMeals.removeAt(index);
+                        });
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('${saved.meal.name} deleted')),
+                        );
+                      }
+
+                      break;
                   }
                 },
                 itemBuilder: (context) => const [
