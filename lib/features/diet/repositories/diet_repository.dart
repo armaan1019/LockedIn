@@ -67,6 +67,10 @@ class DietRepository {
     await _savedMeals.doc(mealId).delete();
   }
 
+  Future<void> updateSavedMeal(SavedMeal savedMeal) async {
+    await _savedMeals.doc(savedMeal.mealId).update(savedMeal.toMap());
+  }
+
   Future<void> deleteMealEntry(String entryId) async {
     await _dietEntries.doc(entryId).delete();
   }

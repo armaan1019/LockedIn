@@ -8,7 +8,7 @@ import '../models/meal.dart';
 
 class CreateMealForm extends StatefulWidget {
   final bool isEditing;
-  final void Function(MealEntry) onSave;
+  final Future<void> Function(MealEntry) onSave;
   final void Function(SavedMeal)? onSaveTemplate;
   final Ingredient? initialIngredient;
   final Meal? initialMeal;
@@ -48,7 +48,7 @@ class _CreateMealFormState extends State<CreateMealForm> {
     }
   }
 
-  void _saveMeal() {
+  Future<void> _saveMeal() async {
     if (_mealNameController.text.isEmpty || _ingredients.isEmpty) return;
 
     final meal = Meal(
@@ -56,7 +56,11 @@ class _CreateMealFormState extends State<CreateMealForm> {
       ingredients: List.from(_ingredients),
     );
 
-    widget.onSave(MealEntry(entryId: '', meal: meal, date: DateTime.now()));
+    await widget.onSave(
+      MealEntry(entryId: '', meal: meal, date: DateTime.now()),
+    );
+
+    if (!mounted) return;
     Navigator.pop(context);
   }
 

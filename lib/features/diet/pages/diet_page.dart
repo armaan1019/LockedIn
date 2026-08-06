@@ -252,6 +252,12 @@ class _DietPageState extends State<DietPage> {
     await _loadSavedMeals();
   }
 
+  Future<void> _editSavedMeal(SavedMeal savedMeal) async {
+    final dietRepo = context.read<DietRepository>();
+
+    await dietRepo.updateSavedMeal(savedMeal);
+  }
+
   void _showCreateMealSheet() {
     showModalBottomSheet(
       context: context,
@@ -306,6 +312,7 @@ class _DietPageState extends State<DietPage> {
                       builder: (_) => SavedMealsPage(
                         savedMeals: _savedMeals,
                         onDelete: _deleteSavedMeal,
+                        onEdit: _editSavedMeal,
                       ),
                     ),
                   );
