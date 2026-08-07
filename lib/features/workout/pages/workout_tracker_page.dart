@@ -258,6 +258,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     );
 
     // Only send session back to parent if user confirms
+    if (!mounted) return;
     if (result != null) {
       Navigator.pop(context, session); // Pass completed session back
 
@@ -433,11 +434,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
                             onPressed: _nextExercise,
                             child: const Text('Next'),
                           )
-                        : ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor:
-                                  Colors.green, // visually different
-                            ),
+                        : FilledButton(
                             onPressed: _finishWorkout,
                             child: const Text('Finish'),
                           ),
