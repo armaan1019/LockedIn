@@ -294,6 +294,7 @@ class _DietPageState extends State<DietPage> {
                 leading: const Icon(Icons.qr_code_scanner),
                 title: const Text('Scan barcode'),
                 onTap: () {
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
                       content: Text('Barcode Scanning coming soon'),
