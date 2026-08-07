@@ -81,16 +81,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
       if (map['workoutId'] == workout.id) {
         if (!mounted) return;
 
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => WorkoutTrackerPage(workout: workout),
-          ),
-        );
-
-        if (result is WorkoutSession) {
-          await workoutSessionsRepo.addWorkoutSession(result);
-        }
+        await _openWorkoutTracker(workout);
 
         return;
       }
@@ -154,16 +145,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
           return;
         }
 
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => WorkoutTrackerPage(workout: activeWorkout),
-          ),
-        );
-
-        if (result is WorkoutSession) {
-          await workoutSessionsRepo.addWorkoutSession(result);
-        }
+        await _openWorkoutTracker(activeWorkout);
 
         return;
       }
@@ -175,22 +157,19 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
         if (!mounted) return;
 
-        final result = await Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => WorkoutTrackerPage(workout: workout),
-          ),
-        );
-
-        if (result is WorkoutSession) {
-          await workoutSessionsRepo.addWorkoutSession(result);
-        }
+        await _openWorkoutTracker(workout);
 
         return;
       }
     }
 
     if (!mounted) return;
+
+    await _openWorkoutTracker(workout);
+  }
+
+  Future<void> _openWorkoutTracker(Workout workout) async {
+    final workoutSessionsRepo = context.read<WorkoutSessionRepository>();
 
     final result = await Navigator.push(
       context,
@@ -201,6 +180,12 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
     if (result is WorkoutSession) {
       await workoutSessionsRepo.addWorkoutSession(result);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Congrats! You completed ${workout.title}')));
     }
   }
 
