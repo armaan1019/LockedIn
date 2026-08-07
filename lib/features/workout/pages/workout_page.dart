@@ -8,6 +8,8 @@ import '../widgets/past_workout_sheet.dart';
 import '../models/workout_session.dart';
 import '../repositories/workout_repository.dart';
 import '../repositories/workout_session_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class WorkoutPage extends StatefulWidget {
   const WorkoutPage({super.key});
@@ -70,6 +72,126 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
     if (workoutSessionsRepo == null) return;
 
+    final prefs = await SharedPreferences.getInstance();
+
+    final json = prefs.getString('active_workout');
+
+    if (json != null) {
+      final map = jsonDecode(json);
+      if (map['workoutId'] == workout.id) {
+        if (!mounted) return;
+
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => WorkoutTrackerPage(workout: workout),
+          ),
+        );
+
+        if (result is WorkoutSession) {
+          await workoutSessionsRepo.addWorkoutSession(result);
+        }
+
+        return;
+      }
+
+      if (!mounted) return;
+
+      final shouldContinue = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Workout in Progress'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                '${map['workoutTitle']} is already in progress.\n\n'
+                'Would you like to continue it or discard it?',
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Discard'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('Continue'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+
+      if (shouldContinue == true) {
+        final activeWorkout = _workouts
+            .where((w) => w.id == map['workoutId'])
+            .firstOrNull;
+
+        if (!mounted) return;
+
+        if (activeWorkout == null) {
+          await prefs.remove('active_workout');
+
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'The workout that was in progress has been deleted',
+              ),
+            ),
+          );
+
+          return;
+        }
+
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => WorkoutTrackerPage(workout: activeWorkout),
+          ),
+        );
+
+        if (result is WorkoutSession) {
+          await workoutSessionsRepo.addWorkoutSession(result);
+        }
+
+        return;
+      }
+
+      if (shouldContinue == null) return;
+
+      if (shouldContinue == false) {
+        await prefs.remove('active_workout');
+
+        if (!mounted) return;
+
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => WorkoutTrackerPage(workout: workout),
+          ),
+        );
+
+        if (result is WorkoutSession) {
+          await workoutSessionsRepo.addWorkoutSession(result);
+        }
+
+        return;
+      }
+    }
+
+    if (!mounted) return;
+
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
@@ -77,7 +199,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
       ),
     );
 
-    if (result != null && result is WorkoutSession) {
+    if (result is WorkoutSession) {
       await workoutSessionsRepo.addWorkoutSession(result);
     }
   }
@@ -143,89 +265,93 @@ class _WorkoutPageState extends State<WorkoutPage> {
               ),
               const SizedBox(height: 16),
               Expanded(
-                child: _isLoading ? const Center(
-                  child: CircularProgressIndicator(),
-                )
-                : _workouts.isEmpty ? Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.fitness_center,
-                        size: 72,
-                        color: Theme.of(context).colorScheme.outline
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No workouts yet',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator())
+                    : _workouts.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.fitness_center,
+                              size: 72,
+                              color: Theme.of(context).colorScheme.outline,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No workouts yet',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Tap the + button below to create your first workout.',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
                         ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.only(bottom: 96),
+                        itemCount: _workouts.length,
+                        itemBuilder: (context, index) {
+                          final w = _workouts[index];
+                          return WorkoutCard(
+                            workout: w,
+                            onStart: () => _startWorkout(w),
+                            onPastWorkouts: () => _showPastWorkouts(w),
+                            onEdit: (workoutToEdit) {
+                              showModalBottomSheet(
+                                context: context,
+                                isScrollControlled: true,
+                                builder: (context) => Padding(
+                                  padding: EdgeInsets.only(
+                                    bottom: MediaQuery.of(
+                                      context,
+                                    ).viewInsets.bottom,
+                                  ),
+                                  child: AddWorkoutForm(
+                                    existingWorkout: workoutToEdit,
+                                    onSave: (updatedWorkout) {
+                                      _updateWorkout(updatedWorkout);
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                            onDelete: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => AlertDialog(
+                                  title: const Text('Delete Workout'),
+                                  content: const Text(
+                                    'Are you sure you want to delete this workout?',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: const Text('Cancel'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed: () async {
+                                        Navigator.pop(context);
+                                        await _deleteWorkout(w.id);
+                                      },
+                                      child: const Text('Delete'),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Tap the + button below to create your first workout.',
-                        textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-                : ListView.builder(
-                  padding: const EdgeInsets.only(bottom: 96),
-                  itemCount: _workouts.length,
-                  itemBuilder: (context, index) {
-                    final w = _workouts[index];
-                    return WorkoutCard(
-                      workout: w,
-                      onStart: () => _startWorkout(w),
-                      onPastWorkouts: () => _showPastWorkouts(w),
-                      onEdit: (workoutToEdit) {
-                        showModalBottomSheet(
-                          context: context,
-                          isScrollControlled: true,
-                          builder: (context) => Padding(
-                            padding: EdgeInsets.only(
-                              bottom: MediaQuery.of(context).viewInsets.bottom,
-                            ),
-                            child: AddWorkoutForm(
-                              existingWorkout: workoutToEdit,
-                              onSave: (updatedWorkout) {
-                                _updateWorkout(updatedWorkout);
-                              },
-                            ),
-                          ),
-                        );
-                      },
-                      onDelete: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: const Text('Delete Workout'),
-                            content: const Text(
-                              'Are you sure you want to delete this workout?',
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('Cancel'),
-                              ),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  Navigator.pop(context);
-                                  await _deleteWorkout(w.id);
-                                },
-                                child: const Text('Delete'),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
               ),
             ],
           ),

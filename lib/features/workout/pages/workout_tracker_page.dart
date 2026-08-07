@@ -7,16 +7,13 @@ import '../models/set_entry.dart';
 import '../models/exercise_session.dart';
 import '../widgets/past_workout_sheet.dart';
 import '../repositories/workout_session_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class WorkoutTrackerPage extends StatefulWidget {
   final Workout workout;
-  final WorkoutSession? existingSession;
 
-  const WorkoutTrackerPage({
-    super.key,
-    required this.workout,
-    this.existingSession,
-  });
+  const WorkoutTrackerPage({super.key, required this.workout});
 
   @override
   State<WorkoutTrackerPage> createState() => _WorkoutTrackerPageState();
@@ -33,15 +30,11 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
   void initState() {
     super.initState();
 
-    if (widget.existingSession != null) {
-      // Editing an existing workout
-      exerciseSessions = widget.existingSession!.exercises;
-    } else {
-      // New workout
-      exerciseSessions = widget.workout.exercises
-          .map((e) => ExerciseSession(name: e.name, sets: []))
-          .toList();
-    }
+    exerciseSessions = widget.workout.exercises
+        .map((e) => ExerciseSession(name: e.name, sets: []))
+        .toList();
+
+    _loadWorkoutProgress();
   }
 
   @override
@@ -49,6 +42,39 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     _repsController.dispose();
     _weightController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loadWorkoutProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final json = prefs.getString('active_workout');
+
+    if (json == null) return;
+
+    final map = jsonDecode(json);
+
+    if (map['workoutId'] != widget.workout.id) return;
+
+    setState(() {
+      currentExerciseIndex = map['currentExerciseIndex'];
+
+      exerciseSessions = (map['exercises'] as List)
+          .map((e) => ExerciseSession.fromMap(e))
+          .toList();
+    });
+  }
+
+  Future<void> _saveWorkoutProgress() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    final map = {
+      'workoutId': widget.workout.id,
+      'workoutTitle': widget.workout.title,
+      'currentExerciseIndex': currentExerciseIndex,
+      'exercises': exerciseSessions.map((e) => e.toMap()).toList(),
+    };
+
+    await prefs.setString('active_workout', jsonEncode(map));
   }
 
   Future<void> _showPreviousWorkouts() async {
@@ -137,7 +163,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     );
   }
 
-  void _addSet() {
+  void _addSet() async {
     final reps = int.tryParse(_repsController.text);
     final weight = double.tryParse(_weightController.text);
 
@@ -150,6 +176,8 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
         _weightController.clear();
       });
     }
+
+    await _saveWorkoutProgress();
   }
 
   Future<void> _nextExercise() async {
@@ -160,10 +188,12 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     }
   }
 
-  void _deleteSet(int index) {
+  void _deleteSet(int index) async {
     setState(() {
       exerciseSessions[currentExerciseIndex].sets.removeAt(index);
     });
+
+    await _saveWorkoutProgress();
   }
 
   void _editSet(SetEntry set) {
@@ -197,12 +227,14 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
             child: const Text('Cancel'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               setState(() {
                 set.reps = int.tryParse(repsController.text) ?? set.reps;
                 set.weight = double.tryParse(weightController.text);
               });
               Navigator.pop(context);
+
+              await _saveWorkoutProgress();
             },
             child: const Text('Save'),
           ),
@@ -228,6 +260,9 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     // Only send session back to parent if user confirms
     if (result != null) {
       Navigator.pop(context, session); // Pass completed session back
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('active_workout');
     }
   }
 
