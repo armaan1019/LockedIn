@@ -91,7 +91,7 @@ class _WorkoutSummaryPageState extends State<WorkoutSummaryPage> {
           children: [
             const SizedBox(width: 12),
             Expanded(
-              child: ElevatedButton(
+              child: FilledButton(
                 onPressed: () {
                   Navigator.pop(context, widget.session);
                 },
