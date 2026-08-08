@@ -166,8 +166,9 @@ class WorkoutCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: onStart,
                   icon: const Icon(Icons.play_arrow),
-                  label: activeWorkout ? 
-                    Text("Resume Workout") : Text('Start Workout'),
+                  label: Text(
+                    activeWorkout ? 'Resume Workout' : 'Start Workout',
+                  ),
                 ),
               ),
 
