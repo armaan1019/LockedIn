@@ -260,10 +260,10 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
     // Only send session back to parent if user confirms
     if (!mounted) return;
     if (result != null) {
-      Navigator.pop(context, session); // Pass completed session back
-
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('active_workout');
+      if (!mounted) return;
+      Navigator.pop(context, session); // Pass completed session back
     }
   }
 

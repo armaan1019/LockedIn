@@ -20,6 +20,7 @@ class WorkoutPage extends StatefulWidget {
 
 class _WorkoutPageState extends State<WorkoutPage> {
   final List<Workout> _workouts = [];
+  String? _activeWorkoutId;
 
   bool _isLoading = true;
 
@@ -59,10 +60,22 @@ class _WorkoutPageState extends State<WorkoutPage> {
     setState(() => _isLoading = true);
 
     final loaded = await workoutRepo.getWorkouts();
+    final prefs = await SharedPreferences.getInstance();
+
+    final json = prefs.getString('active_workout');
+
+    String? activeWorkoutId;
+
+    if (json != null) {
+      final map = jsonDecode(json);
+
+      activeWorkoutId = map['workoutId'];
+    }
 
     setState(() {
       _workouts.clear();
       _workouts.addAll(loaded);
+      _activeWorkoutId = activeWorkoutId;
       _isLoading = false;
     });
   }
@@ -178,14 +191,28 @@ class _WorkoutPageState extends State<WorkoutPage> {
       ),
     );
 
+    final prefs = await SharedPreferences.getInstance();
+    final json = prefs.getString('active_workout');
+
+    if (!mounted) return;
+
+    setState(() {
+      if (json == null) {
+        _activeWorkoutId = null;
+      } else {
+        final map = jsonDecode(json);
+        _activeWorkoutId = map['workoutId'];
+      }
+    });
+
     if (result is WorkoutSession) {
       await workoutSessionsRepo.addWorkoutSession(result);
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Congrats! You completed ${workout.title}')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Congrats! You completed ${workout.title}')),
+      );
     }
   }
 
@@ -289,6 +316,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
                           final w = _workouts[index];
                           return WorkoutCard(
                             workout: w,
+                            activeWorkout: w.id == _activeWorkoutId,
                             onStart: () => _startWorkout(w),
                             onPastWorkouts: () => _showPastWorkouts(w),
                             onEdit: (workoutToEdit) {

@@ -7,6 +7,7 @@ class WorkoutCard extends StatelessWidget {
   final VoidCallback onPastWorkouts;
   final void Function(Workout)? onEdit;
   final VoidCallback? onDelete;
+  final bool activeWorkout;
 
   const WorkoutCard({
     super.key,
@@ -15,6 +16,7 @@ class WorkoutCard extends StatelessWidget {
     required this.onPastWorkouts,
     this.onEdit,
     this.onDelete,
+    required this.activeWorkout,
   });
 
   @override
@@ -30,10 +32,7 @@ class WorkoutCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: theme.colorScheme.outlineVariant,
-          width: 1,
-        ),
+        border: Border.all(color: theme.colorScheme.outlineVariant, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.08),
@@ -45,7 +44,6 @@ class WorkoutCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           // Header
           Row(
             children: [
@@ -95,10 +93,7 @@ class WorkoutCard extends StatelessWidget {
                     PopupMenuItem(
                       child: const Text("Edit Workout"),
                       onTap: () {
-                        Future.delayed(
-                          Duration.zero,
-                          () => onEdit!(workout),
-                        );
+                        Future.delayed(Duration.zero, () => onEdit!(workout));
                       },
                     ),
 
@@ -171,7 +166,8 @@ class WorkoutCard extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: onStart,
                   icon: const Icon(Icons.play_arrow),
-                  label: const Text("Start Workout"),
+                  label: activeWorkout ? 
+                    Text("Resume Workout") : Text('Start Workout'),
                 ),
               ),
 
