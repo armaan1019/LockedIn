@@ -34,7 +34,7 @@ class _AddPostFormState extends State<AddPostForm> {
         id: '',
         userId: user.id,
         username: user.username,
-        content: _messageController.text,
+        content: _messageController.text.trim(),
         createdAt: DateTime.now(),
       );
       widget.onSave(post);
@@ -65,8 +65,17 @@ class _AddPostFormState extends State<AddPostForm> {
                 controller: _messageController,
                 decoration: const InputDecoration(labelText: 'Message'),
                 maxLines: 3,
-                validator: (v) =>
-                    v == null || v.isEmpty ? 'Enter a message' : null,
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) {
+                    return 'Enter a message';
+                  }
+
+                  if (v.trim().length > 500) {
+                    return 'Post must be 500 characters or less';
+                  }
+
+                  return null;
+                },
               ),
               ElevatedButton(onPressed: _save, child: const Text('Post')),
             ],
