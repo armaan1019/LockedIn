@@ -65,4 +65,9 @@ class PostRepository {
 
     await postRef.delete();
   }
+
+  Future<void> deletePost(String postId) async {
+    final postRef = _firestore.collection('posts').doc(postId);
+    await _deletePost(postRef);
+  }
 }

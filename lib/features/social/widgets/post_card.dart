@@ -6,6 +6,7 @@ import '../models/post.dart';
 import '../repositories/comment_repository.dart';
 import '../repositories/like_repository.dart';
 import 'comments_sheet.dart';
+import '../repositories/post_repository.dart';
 
 class PostCard extends StatefulWidget {
   final Post post;
@@ -33,6 +34,11 @@ class _PostCardState extends State<PostCard> {
   void initState() {
     super.initState();
     _loadLikeState();
+  }
+
+  bool get _isOwner {
+    final session = context.read<SessionManager>();
+    return session.currentUserId == widget.post.userId;
   }
 
   Future<void> _loadLikeState() async {
@@ -67,7 +73,7 @@ class _PostCardState extends State<PostCard> {
       });
     } catch (_) {
       if (!mounted) return;
-      
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Failed to like post. Please try again.')),
       );
@@ -95,6 +101,72 @@ class _PostCardState extends State<PostCard> {
         );
       },
     );
+  }
+
+  Future<void> _confirmDelete() async {
+    final postRepo = context.read<PostRepository>();
+
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Delete post?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('This post will be permanently deleted.'),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.pop(dialogContext, false),
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () {
+                        Navigator.pop(dialogContext, true);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Post was deleted')),
+                        );
+                      },
+                      child: const Text('Delete'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (shouldDelete != true) return;
+
+    try {
+      await postRepo.deletePost(widget.post.id);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Post deleted')));
+    } catch (_) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to delete post. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _showReportDialog() async {
+    // Need to implement reporting
   }
 
   @override
@@ -154,6 +226,45 @@ class _PostCardState extends State<PostCard> {
                       ),
                     ],
                   ),
+                ),
+                PopupMenuButton<String>(
+                  icon: const Icon(Icons.more_vert),
+                  onSelected: (value) {
+                    if (value == 'delete') {
+                      _confirmDelete();
+                    } else if (value == 'report') {
+                      _showReportDialog();
+                    }
+                  },
+                  itemBuilder: (context) {
+                    if (_isOwner) {
+                      return const [
+                        PopupMenuItem(
+                          value: 'delete',
+                          child: Row(
+                            children: [
+                              Icon(Icons.delete_outline),
+                              SizedBox(width: 12),
+                              Text('Delete'),
+                            ],
+                          ),
+                        ),
+                      ];
+                    }
+
+                    return const [
+                      PopupMenuItem(
+                        value: 'report',
+                        child: Row(
+                          children: [
+                            Icon(Icons.flag_outlined),
+                            SizedBox(width: 12),
+                            Text('Report'),
+                          ],
+                        ),
+                      ),
+                    ];
+                  },
                 ),
               ],
             ),
