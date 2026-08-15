@@ -20,9 +20,7 @@ class _SocialPageState extends State<SocialPage> {
   }
 
   Future<void> _addPost(Post post) async {
-    await _postRepo.addPost(
-      userId: post.userId,
-      username: post.username,
+    await _postRepo.createPost(
       content: post.content,
     );
 

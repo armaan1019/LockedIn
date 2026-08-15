@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/post.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class PostRepository {
   final FirebaseFirestore _firestore;
@@ -69,5 +70,13 @@ class PostRepository {
   Future<void> deletePost(String postId) async {
     final postRef = _firestore.collection('posts').doc(postId);
     await _deletePost(postRef);
+  }
+
+  Future<String> createPost({required String content}) async {
+    final callable = FirebaseFunctions.instance.httpsCallable('createPost');
+
+    final result = await callable.call({'content': content});
+
+    return result.data['postId'] as String;
   }
 }
