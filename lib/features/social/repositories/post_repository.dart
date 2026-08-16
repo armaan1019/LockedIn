@@ -68,8 +68,9 @@ class PostRepository {
   }
 
   Future<void> deletePost(String postId) async {
-    final postRef = _firestore.collection('posts').doc(postId);
-    await _deletePost(postRef);
+    final callable = FirebaseFunctions.instance.httpsCallable('deletePost');
+
+    await callable.call({'postId': postId});
   }
 
   Future<String> createPost({required String content}) async {

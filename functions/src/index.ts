@@ -115,14 +115,14 @@ export const createPost = onCall({secrets: [openaiApiKey]}, async (request) => {
 });
 
 export const deletePost = onCall(async (request) => {
-  if(!request.auth) {
+  if (!request.auth) {
     throw new HttpsError(
       "unauthenticated",
       "You must be logged in to delete a post.",
     );
   }
 
-  const { postId } = request.data;
+  const {postId} = request.data;
 
   if (!postId || typeof postId !== "string") {
     throw new HttpsError(
@@ -134,7 +134,7 @@ export const deletePost = onCall(async (request) => {
   const postRef = db.collection("posts").doc(postId);
   const postSnap = await postRef.get();
 
-  if(!postSnap.exists) {
+  if (!postSnap.exists) {
     throw new HttpsError(
       "not-found",
       "Post not found.",

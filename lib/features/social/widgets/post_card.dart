@@ -12,12 +12,14 @@ class PostCard extends StatefulWidget {
   final Post post;
   final String timestampString;
   final String authorName;
+  final VoidCallback onDeleted;
 
   const PostCard({
     super.key,
     required this.post,
     required this.timestampString,
     required this.authorName,
+    required this.onDeleted,
   });
 
   @override
@@ -148,12 +150,9 @@ class _PostCardState extends State<PostCard> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Post deleted')));
+      widget.onDeleted();
     } catch (e) {
       if (!mounted) return;
-      print(e.toString());
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

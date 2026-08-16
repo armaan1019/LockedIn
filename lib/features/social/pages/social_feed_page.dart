@@ -19,6 +19,12 @@ class _SocialPageState extends State<SocialPage> {
     super.initState();
   }
 
+  void _onPostDeleted() {
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(const SnackBar(content: Text('Post deleted')));
+  }
+
   Future<void> _addPost(Post post) async {
     try {
       await _postRepo.createPost(content: post.content);
@@ -82,6 +88,7 @@ class _SocialPageState extends State<SocialPage> {
                   post: post,
                   timestampString: _formatTimestamp(post.createdAt),
                   authorName: post.username,
+                  onDeleted: _onPostDeleted,
                 );
               },
             );
