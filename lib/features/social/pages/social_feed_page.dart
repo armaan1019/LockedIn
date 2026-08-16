@@ -20,12 +20,18 @@ class _SocialPageState extends State<SocialPage> {
   }
 
   Future<void> _addPost(Post post) async {
-    await _postRepo.createPost(
-      content: post.content,
-    );
+    try {
+      await _postRepo.createPost(content: post.content);
 
-    if (mounted) {
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } catch (e) {
+      if (!mounted) return;
       Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Your post could not be submitted.')),
+      );
     }
   }
 

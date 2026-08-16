@@ -129,9 +129,6 @@ class _PostCardState extends State<PostCard> {
                     child: FilledButton(
                       onPressed: () {
                         Navigator.pop(dialogContext, true);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Post was deleted')),
-                        );
                       },
                       child: const Text('Delete'),
                     ),
@@ -154,8 +151,9 @@ class _PostCardState extends State<PostCard> {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Post deleted')));
-    } catch (_) {
+    } catch (e) {
       if (!mounted) return;
+      print(e.toString());
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

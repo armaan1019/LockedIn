@@ -97,7 +97,7 @@ export const createPost = onCall({secrets: [openaiApiKey]}, async (request) => {
   if (result.flagged) {
     throw new HttpsError(
       "invalid-argument",
-      "This post violates our community guidelines.",
+      "Your post contains explicit content and cannot be published.",
     );
   }
 
@@ -111,5 +111,63 @@ export const createPost = onCall({secrets: [openaiApiKey]}, async (request) => {
   return {
     success: true,
     postId: postRef.id,
+  };
+});
+
+export const deletePost = onCall(async (request) => {
+  if(!request.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "You must be logged in to delete a post.",
+    );
+  }
+
+  const { postId } = request.data;
+
+  if (!postId || typeof postId !== "string") {
+    throw new HttpsError(
+      "invalid-argument",
+      "A valid post ID is required.",
+    );
+  }
+
+  const postRef = db.collection("posts").doc(postId);
+  const postSnap = await postRef.get();
+
+  if(!postSnap.exists) {
+    throw new HttpsError(
+      "not-found",
+      "Post not found.",
+    );
+  }
+
+  const postData = postSnap.data();
+
+  if (postData?.userId !== request.auth.uid) {
+    throw new HttpsError(
+      "permission-denied",
+      "You can only delete your own posts.",
+    );
+  }
+
+  const commentsSnap = await postRef.collection("comments").get();
+  const likesSnap = await postRef.collection("likes").get();
+
+  const batch = db.batch();
+
+  commentsSnap.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  likesSnap.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  batch.delete(postRef);
+
+  await batch.commit();
+
+  return {
+    success: true,
   };
 });
