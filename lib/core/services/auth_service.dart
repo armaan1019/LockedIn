@@ -72,10 +72,15 @@ class AuthService {
         'email': email,
       });
 
+      batch.set(_firestore.collection('publicProfile').doc(uid), {
+        'username': user.username,
+        'bio': '',
+        'profileImageUrl': null,
+      });
+
       await batch.commit();
       return user;
     } catch (e) {
-      print("SIGN UP ERROR: $e");
       rethrow;
     }
   }

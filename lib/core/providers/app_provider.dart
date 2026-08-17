@@ -13,6 +13,7 @@ import '../services/account_service.dart';
 import '../../features/social/repositories/comment_repository.dart';
 import '../../features/social/repositories/post_repository.dart';
 import '../../features/social/repositories/like_repository.dart';
+import '../../features/social/repositories/user_repository.dart';
 
 List<SingleChildWidget> appProviders = [
   ChangeNotifierProvider(create: (_) => SessionManager()),
@@ -81,4 +82,6 @@ List<SingleChildWidget> appProviders = [
   Provider<CommentRepository>(create: (_) => CommentRepository()),
 
   Provider<LikeRepository>(create: (_) => LikeRepository()),
+
+  Provider<UserRepository>(create: (_) => UserRepository()),
 ];
