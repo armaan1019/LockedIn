@@ -177,50 +177,81 @@ class _PostCardState extends State<PostCard> {
       'Other',
     ];
 
-    final reason = await showDialog<String>(
+    final result = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Report Post'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: reasons.map((reason) {
-              return ListTile(
-                title: Text(reason),
-                onTap: () {
-                  Navigator.pop(context, reason);
-                },
-              );
-            }).toList(),
-          ),
+      builder: (dialogContext) {
+        bool isSubmitting = false;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return PopScope(
+              canPop: !isSubmitting,
+              child: AlertDialog(
+                title: const Text('Report Post'),
+                content: isSubmitting
+                    ? const SizedBox(
+                        height: 80,
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: reasons.map((reason) {
+                          return ListTile(
+                            title: Text(reason),
+                            onTap: () async {
+                              setDialogState(() {
+                                isSubmitting = true;
+                              });
+
+                              try {
+                                final wasReported = await postRepo.reportPost(
+                                  postId: widget.post.id,
+                                  reporterId: reporterId,
+                                  reason: reason,
+                                );
+
+                                if (!dialogContext.mounted) return;
+
+                                Navigator.pop(dialogContext, wasReported);
+                              } catch (e) {
+                                if (!dialogContext.mounted) return;
+
+                                setDialogState(() {
+                                  isSubmitting = false;
+                                });
+
+                                ScaffoldMessenger.of(
+                                  dialogContext,
+                                ).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Failed to report post. Please try again.',
+                                    ),
+                                  ),
+                                );
+                              }
+                            },
+                          );
+                        }).toList(),
+                      ),
+              ),
+            );
+          },
         );
       },
     );
 
-    if (reason == null) return;
+    if (!mounted || result == null) return;
 
-    try {
-      final wasReported = await postRepo.reportPost(
-        postId: widget.post.id,
-        reporterId: reporterId,
-        reason: reason,
-      );
-
-      if (!mounted) return;
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-          wasReported ? 'Post reported successfully' : 'You have already reported this post.'
-        )),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Failed to report post. Please try again.'),
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result
+              ? 'Post reported successfully'
+              : 'You have already reported this post.',
         ),
-      );
-    }
+      ),
+    );
   }
 
   @override

@@ -152,6 +152,7 @@ export const deletePost = onCall(async (request) => {
 
   const commentsSnap = await postRef.collection("comments").get();
   const likesSnap = await postRef.collection("likes").get();
+  const reportsSnap = await postRef.collection("reports").get();
 
   const batch = db.batch();
 
@@ -160,6 +161,10 @@ export const deletePost = onCall(async (request) => {
   });
 
   likesSnap.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  reportsSnap.docs.forEach((doc) => {
     batch.delete(doc.ref);
   });
 
