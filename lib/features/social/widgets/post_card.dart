@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-
+import '../pages/profile_page.dart';
 import '../../../core/services/session_manager.dart';
 import '../models/post.dart';
 import '../repositories/comment_repository.dart';
@@ -294,11 +294,23 @@ class _PostCardState extends State<PostCard> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.authorName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ProfilePage(
+                                userId: widget.post.userId,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          widget.authorName,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 2),
