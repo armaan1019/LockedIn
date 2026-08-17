@@ -80,4 +80,32 @@ class PostRepository {
 
     return result.data['postId'] as String;
   }
+
+  Future<bool> reportPost({
+    required String postId,
+    required String reporterId,
+    required String reason,
+  }) async {
+    final reportRef = _firestore
+        .collection('posts')
+        .doc(postId)
+        .collection('reports')
+        .doc(reporterId);
+
+    final existingReport = await reportRef.get();
+
+    if (existingReport.exists) {
+      return false;
+    }
+
+    await reportRef.set({
+      'postId': postId,
+      'reporterId': reporterId,
+      'reason': reason,
+      'createdAt': FieldValue.serverTimestamp(),
+      'status': 'pending',
+    });
+
+    return true;
+  }
 }

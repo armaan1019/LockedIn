@@ -163,7 +163,64 @@ class _PostCardState extends State<PostCard> {
   }
 
   Future<void> _showReportDialog() async {
-    // Need to implement reporting
+    final postRepo = context.read<PostRepository>();
+    final reporterId = context.read<SessionManager>().currentUserId;
+
+    if (reporterId == null) return;
+
+    final reasons = [
+      'Spam',
+      'Harassment or bullying',
+      'Hateful or abusive content',
+      'Sexual or explicit content',
+      'Violence',
+      'Other',
+    ];
+
+    final reason = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Report Post'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: reasons.map((reason) {
+              return ListTile(
+                title: Text(reason),
+                onTap: () {
+                  Navigator.pop(context, reason);
+                },
+              );
+            }).toList(),
+          ),
+        );
+      },
+    );
+
+    if (reason == null) return;
+
+    try {
+      final wasReported = await postRepo.reportPost(
+        postId: widget.post.id,
+        reporterId: reporterId,
+        reason: reason,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(
+          wasReported ? 'Post reported successfully' : 'You have already reported this post.'
+        )),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to report post. Please try again.'),
+        ),
+      );
+    }
   }
 
   @override
