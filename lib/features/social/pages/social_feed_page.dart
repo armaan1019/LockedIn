@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../widgets/post_card.dart';
 import '../widgets/add_post_form.dart';
 import '../models/post.dart';
 import '../repositories/post_repository.dart';
+import '../../../core/services/session_manager.dart';
+import '../repositories/user_repository.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});
@@ -68,11 +71,15 @@ class _SocialPageState extends State<SocialPage> {
         child: StreamBuilder<List<Post>>(
           stream: _postRepo.getPosts(),
           builder: (context, snapshot) {
+            final session = context.watch<SessionManager>();
+
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
 
-            final posts = snapshot.data ?? [];
+            final posts = (snapshot.data ?? [])
+                .where((post) => !session.blockedUserIds.contains(post.userId))
+                .toList();
 
             if (posts.isEmpty) {
               return const Center(child: Text('No posts yet'));

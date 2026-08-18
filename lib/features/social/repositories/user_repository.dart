@@ -28,4 +28,14 @@ class UserRepository {
         .doc(blockedUserId)
         .set({'blockedAt': FieldValue.serverTimestamp()});
   }
+
+  Future<Set<String>> getBlockedUsers(String userId) async {
+    final snapshot = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('blockedUsers')
+        .get();
+
+    return snapshot.docs.map((doc) => doc.id).toSet();
+  }
 }

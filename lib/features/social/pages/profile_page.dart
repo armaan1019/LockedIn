@@ -95,6 +95,8 @@ class _ProfilePageState extends State<ProfilePage> {
 
       if (!mounted) return;
 
+      context.read<SessionManager>().addBlockedUser(widget.userId);
+
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('User blocked')));
