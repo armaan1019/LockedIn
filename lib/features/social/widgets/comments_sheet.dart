@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../models/comment.dart';
 import '../repositories/comment_repository.dart';
 import '../../../core/services/session_manager.dart';
+import '../pages/profile_page.dart';
 
 class CommentsSheet extends StatefulWidget {
   final String postId;
@@ -79,7 +80,11 @@ class _CommentsSheetState extends State<CommentsSheet> {
                 return const Center(child: CircularProgressIndicator());
               }
 
-              final comments = snapshot.data ?? [];
+              final session = context.watch<SessionManager>();
+
+              final comments = (snapshot.data ?? [])
+                .where((comment) => !session.blockedUserIds.contains(comment.userId))
+                .toList();
 
               if (comments.isEmpty) {
                 return const Center(child: Text('No Comments yet'));
@@ -91,7 +96,24 @@ class _CommentsSheetState extends State<CommentsSheet> {
                     final comment = comments[index];
 
                     return ListTile(
-                      title: Text(comment.username),
+                      title: GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  ProfilePage(userId: comment.userId),
+                            ),
+                          );
+                        },
+                        child: Text(
+                          comment.username,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 16,
+                          ),
+                        ),
+                      ),
                       subtitle: Text(comment.content),
                       trailing: Text(
                         timeAgo(comment.createdAt),
