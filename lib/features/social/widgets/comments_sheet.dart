@@ -83,8 +83,11 @@ class _CommentsSheetState extends State<CommentsSheet> {
               final session = context.watch<SessionManager>();
 
               final comments = (snapshot.data ?? [])
-                .where((comment) => !session.blockedUserIds.contains(comment.userId))
-                .toList();
+                  .where(
+                    (comment) =>
+                        !session.blockedUserIds.contains(comment.userId),
+                  )
+                  .toList();
 
               if (comments.isEmpty) {
                 return const Center(child: Text('No Comments yet'));
@@ -115,12 +118,86 @@ class _CommentsSheetState extends State<CommentsSheet> {
                         ),
                       ),
                       subtitle: Text(comment.content),
-                      trailing: Text(
-                        timeAgo(comment.createdAt),
-                        style: const TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            timeAgo(comment.createdAt),
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                          PopupMenuButton<String>(
+                            onSelected: (value) async {
+                              if (value == 'delete') {
+                                final shouldDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Delete comment?'),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text(
+                                          'This comment will be permanently deleted.',
+                                        ),
+                                        const SizedBox(height: 24),
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              child: OutlinedButton(
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  false,
+                                                ),
+                                                child: const Text('Cancel'),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Expanded(
+                                              child: FilledButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context, true);
+                                                },
+                                                child: const Text('Delete'),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+
+                                if (shouldDelete == true) {
+                                  await _repo.deleteComment(
+                                    postId: widget.postId,
+                                    commentId: comment.id,
+                                  );
+                                } else if (value == 'report') {
+                                  // REPORTING HERE
+                                }
+                              }
+                            },
+                            itemBuilder: (context) {
+                              final isOwnComment =
+                                  comment.userId == session.currentUserId;
+
+                              return [
+                                if (isOwnComment)
+                                  const PopupMenuItem(
+                                    value: 'delete',
+                                    child: Text('Delete'),
+                                  )
+                                else
+                                  const PopupMenuItem(
+                                    value: 'report',
+                                    child: Text('Report'),
+                                  ),
+                              ];
+                            },
+                          ),
+                        ],
                       ),
                     );
                   },

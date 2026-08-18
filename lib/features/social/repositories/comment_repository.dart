@@ -61,14 +61,24 @@ class CommentRepository {
   Future<void> deleteUserComments(String userId) async {
     final posts = await _firestore.collection('posts').get();
 
-    for(final post in posts.docs) {
+    for (final post in posts.docs) {
       final comments = await post.reference
-      .collection('comments')
-      .where('userId', isEqualTo: userId).get();
+          .collection('comments')
+          .where('userId', isEqualTo: userId)
+          .get();
 
-      for(final comment in comments.docs) {
+      for (final comment in comments.docs) {
         await comment.reference.delete();
       }
     }
+  }
+
+  Future<void> deleteComment({
+    required String postId,
+    required String commentId,
+  }) async {
+    await _firestore
+      .collection('posts').doc(postId)
+      .collection('comments').doc(commentId).delete();
   }
 }
