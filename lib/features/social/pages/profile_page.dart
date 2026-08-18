@@ -111,11 +111,42 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _unblockUser() async {
+    final currentUser = context.read<SessionManager>().currentUser;
+
+    if (currentUser == null) return;
+
+    try {
+      await _userRepo.unblockUser(
+        userId: currentUser.id,
+        blockedUserId: widget.userId,
+      );
+
+      if (!mounted) return;
+
+      context.read<SessionManager>().removeBlockedUser(widget.userId);
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('User unblocked')));
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to unblock user')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    final isBlocked = context.watch<SessionManager>().blockedUserIds.contains(
+      widget.userId,
+    );
 
     if (_profile == null) {
       return Scaffold(
@@ -160,8 +191,8 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: _blockUser,
-                child: const Text('Block'),
+                onPressed: isBlocked ? _unblockUser : _blockUser,
+                child: Text(isBlocked ? 'Unblock' : 'Block'),
               ),
             ),
           ],

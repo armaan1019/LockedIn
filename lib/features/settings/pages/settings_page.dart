@@ -14,6 +14,7 @@ import '../../diet/repositories/diet_repository.dart';
 import '../../social/repositories/post_repository.dart';
 import '../../social/repositories/comment_repository.dart';
 import '../../social/repositories/like_repository.dart';
+import 'blocked_users_page.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -215,6 +216,19 @@ class _SettingsPageState extends State<SettingsPage> {
                   icon: Icons.logout,
                   title: "Logout",
                   onTap: _showLogoutDialog,
+                ),
+
+                SettingsTile(
+                  icon: Icons.block,
+                  title: 'Blocked Users',
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BlockedUsersPage(),
+                      ),
+                    );
+                  },
                 ),
 
                 SettingsTile(

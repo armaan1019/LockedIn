@@ -5,7 +5,6 @@ import '../widgets/add_post_form.dart';
 import '../models/post.dart';
 import '../repositories/post_repository.dart';
 import '../../../core/services/session_manager.dart';
-import '../repositories/user_repository.dart';
 
 class SocialPage extends StatefulWidget {
   const SocialPage({super.key});

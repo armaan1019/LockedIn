@@ -38,4 +38,16 @@ class UserRepository {
 
     return snapshot.docs.map((doc) => doc.id).toSet();
   }
+
+  Future<void> unblockUser({
+    required String userId,
+    required String blockedUserId,
+  }) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('blockedUsers')
+        .doc(blockedUserId)
+        .delete();
+  }
 }
