@@ -16,6 +16,10 @@ class ProfileRepository {
 
   Future<void> updateProfile(AppUser user) async {
     await _userDoc.set(user.toMap(), SetOptions(merge: true));
+
+    await _firestore.collection('publicProfiles').doc(userId).set({
+      'bio': user.bio,
+    }, SetOptions(merge: true));
   }
 
   Future<AppUser?> getProfile() async {
@@ -53,6 +57,10 @@ class ProfileRepository {
     batch.delete(_usernames.doc(trimmedOld));
 
     batch.set(newUsernameDoc, {'uid': userId, 'email': email});
+
+    batch.set(_firestore.collection('publicProfiles').doc(userId), {
+      'username': trimmedNew,
+    }, SetOptions(merge: true));
 
     batch.update(_userDoc, {'username': trimmedNew});
 
