@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../repositories/user_repository.dart';
 import '../models/public_profile.dart';
+import '../../../core/services/session_manager.dart';
 
 class ProfilePage extends StatefulWidget {
   final String userId;
@@ -41,6 +43,72 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  Future<void> _blockUser() async {
+    final currentUser = context.read<SessionManager>().currentUser;
+
+    if (currentUser == null) return;
+
+    final shouldBlock = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Block User?'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Are you sure you want to block @${_profile!.username}?'),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: () {
+                        Navigator.pop(context, false);
+                      },
+                      child: const Text('Cancel'),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton(
+                      onPressed: () {
+                        Navigator.pop(context, true);
+                      },
+                      child: const Text('Block'),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (shouldBlock != true) return;
+
+    try {
+      await _userRepo.blockUser(
+        userId: currentUser.id,
+        blockedUserId: widget.userId,
+      );
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('User blocked')));
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Failed to block user')));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
@@ -50,7 +118,8 @@ class _ProfilePageState extends State<ProfilePage> {
     if (_profile == null) {
       return Scaffold(
         appBar: AppBar(title: const Text("No User Found")),
-        body: Center(child: Text('User not found.')));
+        body: Center(child: Text('User not found.')),
+      );
     }
 
     return Scaffold(
@@ -89,9 +158,7 @@ class _ProfilePageState extends State<ProfilePage> {
             SizedBox(
               width: double.infinity,
               child: FilledButton(
-                onPressed: () {
-                  // BLOCKING
-                },
+                onPressed: _blockUser,
                 child: const Text('Block'),
               ),
             ),

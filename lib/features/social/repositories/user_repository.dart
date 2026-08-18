@@ -16,4 +16,16 @@ class UserRepository {
 
     return PublicProfile.fromMap(doc.id, doc.data()!);
   }
+
+  Future<void> blockUser({
+    required String userId,
+    required String blockedUserId,
+  }) async {
+    await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('blockedUsers')
+        .doc(blockedUserId)
+        .set({'blockedAt': FieldValue.serverTimestamp()});
+  }
 }
