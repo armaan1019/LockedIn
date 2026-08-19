@@ -30,30 +30,35 @@ class _AddIngredientFormState extends State<AddIngredientForm> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text('Add Ingredient', style: TextStyle(fontSize: 18)),
+            const SizedBox(height: 16),
 
             TextField(
               controller: name,
               decoration: const InputDecoration(labelText: 'Name'),
               textInputAction: TextInputAction.next,
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: calories,
               decoration: const InputDecoration(labelText: 'Calories'),
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.next,
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: protein,
               decoration: const InputDecoration(labelText: 'Protein'),
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.next,
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: carbs,
               decoration: const InputDecoration(labelText: 'Carbs'),
               keyboardType: TextInputType.number,
               textInputAction: TextInputAction.next,
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: fat,
               decoration: const InputDecoration(labelText: 'Fat'),

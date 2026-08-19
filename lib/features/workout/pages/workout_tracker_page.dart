@@ -214,6 +214,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(labelText: 'Reps'),
             ),
+            const SizedBox(height: 16),
             TextField(
               controller: weightController,
               keyboardType: TextInputType.number,
@@ -222,11 +223,11 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
           ],
         ),
         actions: [
-          TextButton(
+          OutlinedButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
-          ElevatedButton(
+          FilledButton(
             onPressed: () async {
               setState(() {
                 set.reps = int.tryParse(repsController.text) ?? set.reps;
