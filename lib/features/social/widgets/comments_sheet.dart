@@ -31,6 +31,76 @@ class _CommentsSheetState extends State<CommentsSheet> {
     super.dispose();
   }
 
+  Future<void> _deleteComment(Comment comment) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete comment?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('This comment will be permanently deleted.'),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.pop(context, true);
+                    },
+                    child: const Text('Delete'),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (shouldDelete != true || !mounted) return;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Deleting...'),
+          ],
+        ),
+      ),
+    );
+
+    try {
+      await _repo.deleteComment(postId: widget.postId, commentId: comment.id);
+
+      if (!mounted) return;
+
+      Navigator.pop(context);
+    } catch (e) {
+      if (!mounted) return;
+
+      Navigator.pop(context); // loading dialog
+      Navigator.pop(context); // comments sheet
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to delete comment. Please try again.'),
+        ),
+      );
+    }
+  }
+
   Future<void> _showReportDialog(Comment comment) async {
     final reporterId = context.read<SessionManager>().currentUserId;
 
@@ -138,18 +208,41 @@ class _CommentsSheetState extends State<CommentsSheet> {
   }
 
   Future<void> _addComment() async {
-    final session = context.read<SessionManager>();
     final text = _controller.text.trim();
     if (text.isEmpty) return;
 
-    await _repo.addComment(
-      postId: widget.postId,
-      content: text,
-      userId: session.currentUserId!,
-      username: session.currentUser!.username,
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Commenting...'),
+          ],
+        ),
+      ),
     );
 
-    _controller.clear();
+    try {
+      await _repo.addComment(postId: widget.postId, content: text);
+
+      if (!mounted) return;
+
+      Navigator.pop(context);
+
+      _controller.clear();
+    } catch (e) {
+      if (!mounted) return;
+
+      Navigator.pop(context); // loading dialog
+      Navigator.pop(context); // comments sheet
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Comment rejected')));
+    }
   }
 
   @override
@@ -174,6 +267,10 @@ class _CommentsSheetState extends State<CommentsSheet> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                debugPrint('Comments error: ${snapshot.error}');
               }
 
               final session = context.watch<SessionManager>();
@@ -227,50 +324,7 @@ class _CommentsSheetState extends State<CommentsSheet> {
                           PopupMenuButton<String>(
                             onSelected: (value) async {
                               if (value == 'delete') {
-                                final shouldDelete = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Delete comment?'),
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Text(
-                                          'This comment will be permanently deleted.',
-                                        ),
-                                        const SizedBox(height: 24),
-                                        Row(
-                                          children: [
-                                            Expanded(
-                                              child: OutlinedButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  false,
-                                                ),
-                                                child: const Text('Cancel'),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                            Expanded(
-                                              child: FilledButton(
-                                                onPressed: () {
-                                                  Navigator.pop(context, true);
-                                                },
-                                                child: const Text('Delete'),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-
-                                if (shouldDelete == true) {
-                                  await _repo.deleteComment(
-                                    postId: widget.postId,
-                                    commentId: comment.id,
-                                  );
-                                }
+                                await _deleteComment(comment);
                               } else if (value == 'report') {
                                 await _showReportDialog(comment);
                               }

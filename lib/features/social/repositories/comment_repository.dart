@@ -17,7 +17,7 @@ class CommentRepository {
         .collection('posts')
         .doc(postId)
         .collection('comments')
-        .orderBy('createdAt', descending: false)
+        .orderBy('createdAt', descending: true)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -26,32 +26,15 @@ class CommentRepository {
         );
   }
 
-  Future<void> addComment({
+  Future<String> addComment({
     required String postId,
     required String content,
-    required String userId,
-    required String username,
   }) async {
-    final comment = Comment(
-      id: _firestore
-          .collection('posts')
-          .doc(postId)
-          .collection('comments')
-          .doc()
-          .id,
-      userId: userId,
-      username: username,
-      postId: postId,
-      content: content,
-      createdAt: DateTime.now(),
-    );
+    final callable = _functions.httpsCallable('createComment');
 
-    await _firestore
-        .collection('posts')
-        .doc(postId)
-        .collection('comments')
-        .doc(comment.id)
-        .set(comment.toMap());
+    final result = await callable.call({'postId': postId, 'content': content});
+
+    return result.data['commentId'] as String;
   }
 
   Stream<int> getTotalCommentsForPost(String postId) {

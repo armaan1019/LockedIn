@@ -353,3 +353,128 @@ export const deleteUserPosts = onCall(async (request) => {
     postsDeleted: postsSnap.size,
   };
 });
+
+export const createComment = onCall(
+  {secrets: [openaiApiKey]},
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError(
+        "unauthenticated",
+        "You must be logged in to comment.",
+      );
+    }
+
+    const {postId, content} = request.data;
+
+    if (typeof postId !== "string" || postId.trim().length === 0) {
+      throw new HttpsError(
+        "invalid-argument",
+        "A valid post ID is required.",
+      );
+    }
+
+    if (typeof content !== "string") {
+      throw new HttpsError(
+        "invalid-argument",
+        "Comment content must be text.",
+      );
+    }
+
+    const trimmedContent = content.trim();
+
+    if (trimmedContent.length === 0) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Comment cannot be empty.",
+      );
+    }
+
+    if (trimmedContent.length > 500) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Comment cannot exceed 500 characters.",
+      );
+    }
+
+    const postRef = db.collection("posts").doc(postId);
+    const postSnap = await postRef.get();
+
+    if (!postSnap.exists) {
+      throw new HttpsError(
+        "not-found",
+        "Post not found.",
+      );
+    }
+
+    const userId = request.auth.uid;
+
+    const userSnapshot = await db
+      .collection("users")
+      .doc(userId)
+      .get();
+
+    if (!userSnapshot.exists) {
+      throw new HttpsError(
+        "not-found",
+        "User profile not found.",
+      );
+    }
+
+    const userData = userSnapshot.data();
+    const username = userData?.username;
+
+    if (typeof username !== "string") {
+      throw new HttpsError(
+        "failed-precondition",
+        "User does not have a valid username.",
+      );
+    }
+
+    const openai = new OpenAI({
+      apiKey: openaiApiKey.value(),
+    });
+
+    let moderation;
+
+    try {
+      moderation = await openai.moderations.create({
+        model: "omni-moderation-latest",
+        input: trimmedContent,
+      });
+    } catch (error: any) {
+      console.error("OpenAI comment moderation error:", error);
+      console.error("Status:", error?.status);
+      console.error("Message:", error?.message);
+      console.error("Code:", error?.code);
+      console.error("Type:", error?.type);
+      console.error("Request ID:", error?.requestID);
+
+      throw new HttpsError(
+        "internal",
+        "Comment moderation is temporarily unavailable.",
+      );
+    }
+
+    const result = moderation.results[0];
+
+    if (result.flagged) {
+      throw new HttpsError(
+        "invalid-argument",
+        "Your comment contains explicit content and cannot be posted.",
+      );
+    }
+
+    const commentRef = await postRef.collection("comments").add({
+      userId: userId,
+      username: username,
+      postId: postId,
+      content: trimmedContent,
+      createdAt: FieldValue.serverTimestamp(),
+    });
+
+    return {
+      success: true,
+      commentId: commentRef.id,
+    };
+  },
+);
