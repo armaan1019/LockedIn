@@ -4,27 +4,11 @@ import 'package:cloud_functions/cloud_functions.dart';
 
 class PostRepository {
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
-  PostRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
-
-  Future<void> addPost({
-    required String userId,
-    required String username,
-    required String content,
-  }) async {
-    final postRef = _firestore.collection('posts').doc();
-
-    final post = Post(
-      id: postRef.id,
-      userId: userId,
-      username: username,
-      content: content,
-      createdAt: DateTime.now(),
-    );
-
-    await postRef.set(post.toMap());
-  }
+  PostRepository({FirebaseFirestore? firestore, FirebaseFunctions? functions})
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _functions = functions ?? FirebaseFunctions.instance;
 
   Stream<List<Post>> getPosts() {
     return _firestore
@@ -39,42 +23,19 @@ class PostRepository {
   }
 
   Future<void> deleteUserPosts(String userId) async {
-    final posts = await _firestore
-        .collection('posts')
-        .where('userId', isEqualTo: userId)
-        .get();
+    final callable = _functions.httpsCallable('deleteUserPosts');
 
-    for (final post in posts.docs) {
-      await _deletePost(post.reference);
-    }
-  }
-
-  Future<void> _deletePost(
-    DocumentReference<Map<String, dynamic>> postRef,
-  ) async {
-    final comments = await postRef.collection('comments').get();
-
-    for (final doc in comments.docs) {
-      await doc.reference.delete();
-    }
-
-    final likes = await postRef.collection('likes').get();
-
-    for (final doc in likes.docs) {
-      await doc.reference.delete();
-    }
-
-    await postRef.delete();
+    await callable.call();
   }
 
   Future<void> deletePost(String postId) async {
-    final callable = FirebaseFunctions.instance.httpsCallable('deletePost');
+    final callable = _functions.httpsCallable('deletePost');
 
     await callable.call({'postId': postId});
   }
 
   Future<String> createPost({required String content}) async {
-    final callable = FirebaseFunctions.instance.httpsCallable('createPost');
+    final callable = _functions.httpsCallable('createPost');
 
     final result = await callable.call({'content': content});
 

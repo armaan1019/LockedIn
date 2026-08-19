@@ -64,18 +64,9 @@ class CommentRepository {
   }
 
   Future<void> deleteUserComments(String userId) async {
-    final posts = await _firestore.collection('posts').get();
+    final callable = _functions.httpsCallable('deleteUserComments');
 
-    for (final post in posts.docs) {
-      final comments = await post.reference
-          .collection('comments')
-          .where('userId', isEqualTo: userId)
-          .get();
-
-      for (final comment in comments.docs) {
-        await comment.reference.delete();
-      }
-    }
+    await callable.call();
   }
 
   Future<void> deleteComment({

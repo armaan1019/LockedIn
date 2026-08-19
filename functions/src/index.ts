@@ -243,3 +243,113 @@ export const deleteComment = onCall(async (request) => {
     success: true,
   };
 });
+
+export const deleteUserComments = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "You must be logged in to delete your comments.",
+    );
+  }
+
+  const userId = request.auth.uid;
+
+  const postsSnap = await db.collection("posts").get();
+
+  const batch = db.batch();
+
+  let commentsDeleted = 0;
+  let reportsDeleted = 0;
+
+  for (const post of postsSnap.docs) {
+    const commentsSnap = await post.ref
+      .collection("comments")
+      .where("userId", "==", userId)
+      .get();
+
+    for (const comment of commentsSnap.docs) {
+      const reportsSnap = await comment.ref
+        .collection("reports")
+        .get();
+
+      reportsSnap.docs.forEach((report) => {
+        batch.delete(report.ref);
+        reportsDeleted++;
+      });
+
+      batch.delete(comment.ref);
+      commentsDeleted++;
+    }
+  }
+
+  if (commentsDeleted > 0 || reportsDeleted > 0) {
+    await batch.commit();
+  }
+
+  return {
+    success: true,
+    commentsDeleted: commentsDeleted,
+    reportsDeleted: reportsDeleted,
+  };
+});
+
+export const deleteUserPosts = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "You must be logged in to delete your posts.",
+    );
+  }
+
+  const userId = request.auth.uid;
+
+  const postsSnap = await db
+    .collection("posts")
+    .where("userId", "==", userId)
+    .get();
+
+  for (const post of postsSnap.docs) {
+    const commentsSnap = await post.ref
+      .collection("comments")
+      .get();
+
+    const likesSnap = await post.ref
+      .collection("likes")
+      .get();
+
+    const reportsSnap = await post.ref
+      .collection("reports")
+      .get();
+
+    const batch = db.batch();
+
+    for (const comment of commentsSnap.docs) {
+      const commentReportsSnap = await comment.ref
+        .collection("reports")
+        .get();
+
+      commentReportsSnap.docs.forEach((report) => {
+        batch.delete(report.ref);
+      });
+
+      batch.delete(comment.ref);
+    }
+
+    likesSnap.docs.forEach((like) => {
+      batch.delete(like.ref);
+    });
+
+    reportsSnap.docs.forEach((report) => {
+      batch.delete(report.ref);
+    });
+
+    batch.delete(post.ref);
+
+    await batch.commit();
+  }
+
+  return {
+    success: true,
+    postsDeleted: postsSnap.size,
+  };
+});
