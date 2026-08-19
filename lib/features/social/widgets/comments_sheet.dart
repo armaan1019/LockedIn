@@ -31,6 +31,102 @@ class _CommentsSheetState extends State<CommentsSheet> {
     super.dispose();
   }
 
+  Future<void> _showReportDialog(Comment comment) async {
+    final reporterId = context.read<SessionManager>().currentUserId;
+
+    if (reporterId == null) return;
+
+    final reasons = [
+      'Spam',
+      'Harassment or bullying',
+      'Hateful or abusive content',
+      'Sexual or explicit content',
+      'Violence',
+      'Other',
+    ];
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        bool isSubmitting = false;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return PopScope(
+              canPop: !isSubmitting,
+              child: AlertDialog(
+                title: const Text('Report Comment'),
+                content: isSubmitting
+                    ? const SizedBox(
+                        height: 80,
+                        child: Center(child: CircularProgressIndicator()),
+                      )
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: reasons.map((reason) {
+                          return ListTile(
+                            title: Text(reason),
+                            onTap: () async {
+                              setDialogState(() {
+                                isSubmitting = true;
+                              });
+
+                              try {
+                                final wasReported = await _repo.reportComment(
+                                  postId: widget.postId,
+                                  commentId: comment.id,
+                                  reporterId: reporterId,
+                                  reason: reason,
+                                );
+
+                                if (!dialogContext.mounted) return;
+
+                                Navigator.pop(dialogContext, wasReported);
+
+                                if (mounted) {
+                                  Navigator.pop(context);
+                                }
+                              } catch (e) {
+                                if (!dialogContext.mounted) return;
+
+                                Navigator.pop(dialogContext);
+
+                                if (mounted) {
+                                  Navigator.pop(context);
+
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Failed to report comment. Please try again.',
+                                      ),
+                                    ),
+                                  );
+                                }
+                              }
+                            },
+                          );
+                        }).toList(),
+                      ),
+              ),
+            );
+          },
+        );
+      },
+    );
+
+    if (!mounted || result == null) return;
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          result
+              ? 'Comment reported successfully'
+              : 'You have already reported this comment.',
+        ),
+      ),
+    );
+  }
+
   String timeAgo(DateTime createdAt) {
     final diff = DateTime.now().difference(createdAt);
 
@@ -174,9 +270,9 @@ class _CommentsSheetState extends State<CommentsSheet> {
                                     postId: widget.postId,
                                     commentId: comment.id,
                                   );
-                                } else if (value == 'report') {
-                                  // REPORTING HERE
                                 }
+                              } else if (value == 'report') {
+                                await _showReportDialog(comment);
                               }
                             },
                             itemBuilder: (context) {

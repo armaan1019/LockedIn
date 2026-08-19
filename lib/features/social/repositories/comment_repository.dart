@@ -81,4 +81,33 @@ class CommentRepository {
       .collection('posts').doc(postId)
       .collection('comments').doc(commentId).delete();
   }
+
+  Future<bool> reportComment({
+    required String postId,
+    required String commentId,
+    required String reporterId,
+    required String reason,
+  }) async {
+    final reportRef = _firestore
+        .collection('posts')
+        .doc(postId).collection('comments').doc(commentId)
+        .collection('reports')
+        .doc(reporterId);
+
+    final existingReport = await reportRef.get();
+
+    if (existingReport.exists) {
+      return false;
+    }
+
+    await reportRef.set({
+      'commentId': commentId,
+      'reporterId': reporterId,
+      'reason': reason,
+      'createdAt': FieldValue.serverTimestamp(),
+      'status': 'pending',
+    });
+
+    return true;
+  }
 }
