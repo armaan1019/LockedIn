@@ -1,11 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/comment.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 
 class CommentRepository {
   final FirebaseFirestore _firestore;
+  final FirebaseFunctions _functions;
 
-  CommentRepository({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+  CommentRepository({
+    FirebaseFirestore? firestore,
+    FirebaseFunctions? functions,
+  }) : _firestore = firestore ?? FirebaseFirestore.instance,
+       _functions = functions ?? FirebaseFunctions.instance;
 
   Stream<List<Comment>> getPostComments(String postId) {
     return _firestore
@@ -77,9 +82,9 @@ class CommentRepository {
     required String postId,
     required String commentId,
   }) async {
-    await _firestore
-      .collection('posts').doc(postId)
-      .collection('comments').doc(commentId).delete();
+    final callable = _functions.httpsCallable('deleteComment');
+
+    await callable.call({'postId': postId, 'commentId': commentId});
   }
 
   Future<bool> reportComment({
@@ -90,7 +95,9 @@ class CommentRepository {
   }) async {
     final reportRef = _firestore
         .collection('posts')
-        .doc(postId).collection('comments').doc(commentId)
+        .doc(postId)
+        .collection('comments')
+        .doc(commentId)
         .collection('reports')
         .doc(reporterId);
 

@@ -156,9 +156,15 @@ export const deletePost = onCall(async (request) => {
 
   const batch = db.batch();
 
-  commentsSnap.docs.forEach((doc) => {
-    batch.delete(doc.ref);
-  });
+  for (const comment of commentsSnap.docs) {
+    const commentReportsSnap = await comment.ref.collection("reports").get();
+
+    commentReportsSnap.docs.forEach((report) => {
+      batch.delete(report.ref);
+    });
+
+    batch.delete(comment.ref);
+  }
 
   likesSnap.docs.forEach((doc) => {
     batch.delete(doc.ref);
@@ -169,6 +175,67 @@ export const deletePost = onCall(async (request) => {
   });
 
   batch.delete(postRef);
+
+  await batch.commit();
+
+  return {
+    success: true,
+  };
+});
+
+export const deleteComment = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError(
+      "unauthenticated",
+      "You must be logged in to delete a comment.",
+    );
+  }
+
+  const {postId, commentId} = request.data;
+
+  if (!postId || typeof postId !== "string") {
+    throw new HttpsError(
+      "invalid-argument",
+      "A valid post ID is required.",
+    );
+  }
+
+  if (!commentId || typeof commentId !== "string") {
+    throw new HttpsError(
+      "invalid-argument",
+      "A valid comment ID is required.",
+    );
+  }
+
+  const commentRef = db.collection("posts").doc(postId)
+    .collection("comments").doc(commentId);
+  const commentSnap = await commentRef.get();
+
+  if (!commentSnap.exists) {
+    throw new HttpsError(
+      "not-found",
+      "Comment not found.",
+    );
+  }
+
+  const commentData = commentSnap.data();
+
+  if (commentData?.userId !== request.auth.uid) {
+    throw new HttpsError(
+      "permission-denied",
+      "You can only delete your own comments.",
+    );
+  }
+
+  const reportsSnap = await commentRef.collection("reports").get();
+
+  const batch = db.batch();
+
+  reportsSnap.docs.forEach((doc) => {
+    batch.delete(doc.ref);
+  });
+
+  batch.delete(commentRef);
 
   await batch.commit();
 
