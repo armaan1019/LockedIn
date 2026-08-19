@@ -23,6 +23,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
   String? _activeWorkoutId;
 
   bool _isLoading = true;
+  bool _isShowingPastWorkouts = false;
 
   @override
   void initState() {
@@ -242,24 +243,32 @@ class _WorkoutPageState extends State<WorkoutPage> {
   }
 
   Future<void> _showPastWorkouts(Workout workout) async {
-    final workoutSessionsRepo = context.read<WorkoutSessionRepository?>();
+    if (_isShowingPastWorkouts) return;
 
-    if (workoutSessionsRepo == null) return;
+    _isShowingPastWorkouts = true;
 
-    final pastSessions = await workoutSessionsRepo.getPastWorkoutsByWorkoutId(
-      workout.id,
-    );
+    try {
+      final workoutSessionsRepo = context.read<WorkoutSessionRepository?>();
 
-    if (!mounted) return;
+      if (workoutSessionsRepo == null) return;
 
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (_) => SizedBox(
-        height: MediaQuery.of(context).size.height * 0.7,
-        child: PastWorkoutsSheet(sessions: pastSessions),
-      ),
-    );
+      final pastSessions = await workoutSessionsRepo.getPastWorkoutsByWorkoutId(
+        workout.id,
+      );
+
+      if (!mounted) return;
+
+      await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (_) => SizedBox(
+          height: MediaQuery.of(context).size.height * 0.7,
+          child: PastWorkoutsSheet(sessions: pastSessions),
+        ),
+      );
+    } finally {
+      _isShowingPastWorkouts = false;
+    }
   }
 
   @override
