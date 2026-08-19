@@ -21,24 +21,42 @@ class _SocialPageState extends State<SocialPage> {
     super.initState();
   }
 
-  void _onPostDeleted() {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(const SnackBar(content: Text('Post deleted')));
-  }
-
   Future<void> _addPost(Post post) async {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Posting...'),
+          ],
+        ),
+      ),
+    );
+
     try {
       await _postRepo.createPost(content: post.content);
 
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      if (!mounted) return;
+
+      Navigator.pop(context);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Post created'),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
+
       Navigator.pop(context);
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Your post could not be submitted.')),
+        const SnackBar(
+          content: Text('Your post could not be submitted.'),
+        ),
       );
     }
   }
@@ -94,7 +112,6 @@ class _SocialPageState extends State<SocialPage> {
                   post: post,
                   timestampString: _formatTimestamp(post.createdAt),
                   authorName: post.username,
-                  onDeleted: _onPostDeleted,
                 );
               },
             );

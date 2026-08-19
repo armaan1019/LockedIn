@@ -12,14 +12,12 @@ class PostCard extends StatefulWidget {
   final Post post;
   final String timestampString;
   final String authorName;
-  final VoidCallback onDeleted;
 
   const PostCard({
     super.key,
     required this.post,
     required this.timestampString,
     required this.authorName,
-    required this.onDeleted,
   });
 
   @override
@@ -143,18 +141,45 @@ class _PostCardState extends State<PostCard> {
       },
     );
 
-    if (shouldDelete != true) return;
+    if (shouldDelete != true || !mounted) return;
+
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const AlertDialog(
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 16),
+            Text('Deleting...'),
+          ],
+        ),
+      ),
+    );
 
     try {
       await postRepo.deletePost(widget.post.id);
 
+      if (navigator.mounted) {
+        navigator.pop();
+      }
+
       if (!mounted) return;
 
-      widget.onDeleted();
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(content: Text('Post deleted.')),
+      );
     } catch (e) {
+      if (navigator.mounted) {
+        navigator.pop();
+      }
+
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Failed to delete post. Please try again.'),
         ),
@@ -299,9 +324,8 @@ class _PostCardState extends State<PostCard> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => ProfilePage(
-                                userId: widget.post.userId,
-                              ),
+                              builder: (_) =>
+                                  ProfilePage(userId: widget.post.userId),
                             ),
                           );
                         },

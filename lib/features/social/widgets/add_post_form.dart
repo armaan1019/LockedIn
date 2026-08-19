@@ -4,7 +4,7 @@ import '../../../core/services/session_manager.dart';
 import 'package:provider/provider.dart';
 
 class AddPostForm extends StatefulWidget {
-  final void Function(Post) onSave;
+  final Future<void> Function(Post) onSave;
 
   const AddPostForm({super.key, required this.onSave});
 
@@ -22,24 +22,30 @@ class _AddPostFormState extends State<AddPostForm> {
     super.dispose();
   }
 
-  void _save() {
+  Future<void> _save() async {
     final session = context.read<SessionManager>();
-    if (_formKey.currentState!.validate()) {
-      final user = session.currentUser;
-      if (user == null) {
-        return;
-      }
 
-      final post = Post(
-        id: '',
-        userId: user.id,
-        username: user.username,
-        content: _messageController.text.trim(),
-        createdAt: DateTime.now(),
-      );
-      widget.onSave(post);
-      _messageController.clear();
+    if (!_formKey.currentState!.validate()) {
+      return;
     }
+
+    final user = session.currentUser;
+
+    if (user == null) {
+      return;
+    }
+
+    final post = Post(
+      id: '',
+      userId: user.id,
+      username: user.username,
+      content: _messageController.text.trim(),
+      createdAt: DateTime.now(),
+    );
+
+    Navigator.pop(context);
+
+    await widget.onSave(post);
   }
 
   @override
