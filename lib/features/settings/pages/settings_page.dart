@@ -15,6 +15,7 @@ import '../../social/repositories/post_repository.dart';
 import '../../social/repositories/comment_repository.dart';
 import '../../social/repositories/like_repository.dart';
 import 'blocked_users_page.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -25,6 +26,18 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
   bool _isDeleting = false;
+
+  Future<void> _openWebsite(String url) async {
+    final uri = Uri.parse(url);
+
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Could not open this page.')));
+    }
+  }
 
   Future<void> _showLogoutDialog() async {
     final shouldLogout = await showDialog<bool>(
@@ -258,6 +271,24 @@ class _SettingsPageState extends State<SettingsPage> {
                   value: context.watch<ThemeProvider>().isDarkMode,
                   onChanged: (value) {
                     context.read<ThemeProvider>().toggleTheme(value);
+                  },
+                ),
+
+                const SettingsSectionTitle(title: 'Support and Privacy'),
+
+                SettingsTile(
+                  icon: Icons.help_outline,
+                  title: 'Help & Support',
+                  onTap: () {
+                    _openWebsite('https://lockedinfitness.app/support');
+                  },
+                ),
+
+                SettingsTile(
+                  icon: Icons.privacy_tip_outlined,
+                  title: 'Privacy Policy',
+                  onTap: () {
+                    _openWebsite('https://lockedinfitness.app/privacy');
                   },
                 ),
               ],
