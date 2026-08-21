@@ -12,8 +12,7 @@ class EmailVerificationPage extends StatefulWidget {
 }
 
 class _EmailVerificationPageState extends State<EmailVerificationPage> {
-  bool _checking = false;
-  bool _resending = false;
+  bool _isBusy = false;
 
   Timer? _resendCooldownTimer;
   int _resendCooldown = 0;
@@ -25,8 +24,10 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
   }
 
   Future<void> _checkVerification() async {
+    if (_isBusy) return;
+
     setState(() {
-      _checking = true;
+      _isBusy = true;
     });
 
     try {
@@ -50,15 +51,17 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     } finally {
       if (mounted) {
         setState(() {
-          _checking = false;
+          _isBusy = false;
         });
       }
     }
   }
 
   Future<void> _resendVerificationEmail() async {
+    if (_isBusy) return;
+
     setState(() {
-      _resending = true;
+      _isBusy = true;
     });
 
     try {
@@ -103,14 +106,28 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
     } finally {
       if (mounted) {
         setState(() {
-          _resending = false;
+          _isBusy = false;
         });
       }
     }
   }
 
   Future<void> _logout() async {
-    await context.read<SessionManager>().logout();
+    if (_isBusy) return;
+
+    setState(() {
+      _isBusy = true;
+    });
+
+    try {
+      await context.read<SessionManager>().logout();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isBusy = false;
+        });
+      }
+    }
   }
 
   @override
@@ -150,7 +167,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 const Text(
                   'We sent you a verification link. '
                   'Please verify your email address before continuing to Locked In. '
-                  'Check your spam/junk folders if the email seems to missing.',
+                  'Check your spam/junk folders if the email seems to be missing.',
                   textAlign: TextAlign.center,
                 ),
 
@@ -159,8 +176,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
-                    onPressed: _checking ? null : _checkVerification,
-                    child: _checking
+                    onPressed: _isBusy ? null : _checkVerification,
+                    child: _isBusy
                         ? const SizedBox(
                             height: 20,
                             width: 20,
@@ -173,17 +190,26 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                 const SizedBox(height: 12),
 
                 OutlinedButton(
-                  onPressed: _resending || _resendCooldown > 0
+                  onPressed: _isBusy || _resendCooldown > 0
                       ? null
                       : _resendVerificationEmail,
-                  child: _resending
+                  child: _isBusy
                       ? const Text('Sending...')
                       : const Text('Resend Verification Email'),
                 ),
 
                 const SizedBox(height: 24),
 
-                OutlinedButton(onPressed: _logout, child: const Text('Log Out')),
+                OutlinedButton(
+                  onPressed: _isBusy ? null : _logout,
+                  child: _isBusy
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('Log Out'),
+                ),
               ],
             ),
           ),
