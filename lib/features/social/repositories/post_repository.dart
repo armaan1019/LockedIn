@@ -69,4 +69,20 @@ class PostRepository {
 
     return true;
   }
+
+  Future<void> deleteUserPostReports(String userId) async {
+    final posts = await _firestore.collection('posts').get();
+
+    for (final post in posts.docs) {
+      final reportRef = post.reference
+          .collection('reports')
+          .doc(userId);
+
+      final reportSnapshot = await reportRef.get();
+
+      if (reportSnapshot.exists) {
+        await reportRef.delete();
+      }
+    }
+  }
 }

@@ -16,6 +16,7 @@ import '../../social/repositories/comment_repository.dart';
 import '../../social/repositories/like_repository.dart';
 import 'blocked_users_page.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../social/repositories/user_repository.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -33,9 +34,9 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Could not open this page.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Could not open this page.')),
+      );
     }
   }
 
@@ -126,6 +127,7 @@ class _SettingsPageState extends State<SettingsPage> {
         postRepository: context.read<PostRepository>(),
         commentRepository: context.read<CommentRepository>(),
         likeRepository: context.read<LikeRepository>(),
+        userRepository: context.read<UserRepository>(),
       );
 
       await Future.delayed(const Duration(milliseconds: 300));

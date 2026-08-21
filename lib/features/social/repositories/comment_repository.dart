@@ -91,4 +91,26 @@ class CommentRepository {
 
     return true;
   }
+
+  Future<void> deleteUserCommentReports(String userId) async {
+    final posts = await _firestore.collection('posts').get();
+
+    for (final post in posts.docs) {
+      final comments = await post.reference
+          .collection('comments')
+          .get();
+
+      for (final comment in comments.docs) {
+        final reportRef = comment.reference
+            .collection('reports')
+            .doc(userId);
+
+        final reportSnapshot = await reportRef.get();
+
+        if (reportSnapshot.exists) {
+          await reportRef.delete();
+        }
+      }
+    }
+  }
 }

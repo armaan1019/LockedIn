@@ -17,6 +17,10 @@ class UserRepository {
     return PublicProfile.fromMap(doc.id, doc.data()!);
   }
 
+  Future<void> deletePublicProfile(String userId) async {
+    await _firestore.collection('publicProfiles').doc(userId).delete();
+  }
+
   Future<void> blockUser({
     required String userId,
     required String blockedUserId,

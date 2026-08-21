@@ -55,7 +55,14 @@ class LikeRepository {
     final posts = await _firestore.collection('posts').get();
 
     for (final post in posts.docs) {
-      await post.reference.collection('likes').doc(userId).delete();
+      final likes = await post.reference
+          .collection('likes')
+          .where('userId', isEqualTo: userId)
+          .get();
+
+      for (final like in likes.docs) {
+        await like.reference.delete();
+      }
     }
   }
 }

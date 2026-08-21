@@ -4,6 +4,7 @@ import '../../features/diet/repositories/diet_repository.dart';
 import '../../features/social/repositories/post_repository.dart';
 import '../../features/social/repositories/comment_repository.dart';
 import '../../features/social/repositories/like_repository.dart';
+import '../../features/social/repositories/user_repository.dart';
 import 'auth_service.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -16,6 +17,7 @@ class AccountService {
     required PostRepository postRepository,
     required CommentRepository commentRepository,
     required LikeRepository likeRepository,
+    required UserRepository userRepository,
   }) async {
     await AuthService.instance.reauthenticate(
       email: user.email,
@@ -28,6 +30,9 @@ class AccountService {
       likeRepository.deleteUserLikes(user.id),
       commentRepository.deleteUserComments(user.id),
       postRepository.deleteUserPosts(user.id),
+      postRepository.deleteUserPostReports(user.id),
+      commentRepository.deleteUserCommentReports(user.id),
+      userRepository.deletePublicProfile(user.id),
     ]);
 
     final firestore = FirebaseFirestore.instance;
