@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/services/session_manager.dart';
 import 'package:provider/provider.dart';
 import 'signup_page.dart';
+import '../../../core/widgets/login_response.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -35,25 +36,33 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
-      final success = await context.read<SessionManager>().login(
+      final result = await context.read<SessionManager>().login(
         _usernameController.text.trim(),
         _passwordController.text.trim(),
       );
 
       if (!mounted) return;
 
-      setState(() => _isLoading = false);
-
-      if (!success) {
-        setState(() => _error = "Invalid login");
+      if (result == LoginResult.invalidCredentials) {
+        setState(() {
+          _error = "Invalid username or password.";
+        });
+      } else if (result == LoginResult.emailNotVerified) {
+        // Do not set an error here.
+        // SessionManager will cause MyApp to show
+        // EmailVerificationPage.
       }
     } catch (e) {
       if (!mounted) return;
 
-      setState(() => _error = "Something went wrong!");
+      setState(() {
+        _error = "Something went wrong!";
+      });
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
@@ -108,7 +117,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  child: FilledButton(
                     onPressed: _isLoading ? null : _login,
                     child: _isLoading
                         ? const CircularProgressIndicator()

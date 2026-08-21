@@ -1,6 +1,7 @@
 import '../../features/social/models/user.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../widgets/login_response.dart';
 
 class AuthService {
   AuthService._();
@@ -9,14 +10,17 @@ class AuthService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   String? get currentUserId => _auth.currentUser?.uid;
+  Stream<User?> get authStateChanges => _auth.authStateChanges();
 
-  Future<AppUser?> login(String username, String password) async {
+  Future<LoginResponse> login(String username, String password) async {
     final usernameDoc = await _firestore
         .collection('usernames')
         .doc(username)
         .get();
 
-    if (!usernameDoc.exists) return null;
+    if (!usernameDoc.exists) {
+      return LoginResponse(result: LoginResult.invalidCredentials);
+    }
 
     final email = usernameDoc.data()!['email'];
 
@@ -26,14 +30,26 @@ class AuthService {
         password: password,
       );
 
-      final uid = cred.user!.uid;
+      final firebaseUser = cred.user!;
+
+      if (!firebaseUser.emailVerified) {
+        return LoginResponse(result: LoginResult.emailNotVerified);
+      }
+
+      final uid = firebaseUser.uid;
 
       final userDoc = await _firestore.collection('users').doc(uid).get();
 
-      return AppUser.fromMap(uid, userDoc.data()!);
+      if (!userDoc.exists)
+        return LoginResponse(result: LoginResult.invalidCredentials);
+
+      return LoginResponse(
+        result: LoginResult.success,
+        user: AppUser.fromMap(uid, userDoc.data()!),
+      );
     } on FirebaseAuthException catch (e) {
       if (e.code == 'invalid-credential') {
-        return null;
+        return LoginResponse(result: LoginResult.invalidCredentials);
       }
 
       rethrow;
@@ -60,7 +76,11 @@ class AuthService {
         password: password,
       );
 
-      final uid = cred.user!.uid;
+      final firebaseUser = cred.user!;
+
+      await firebaseUser.sendEmailVerification();
+
+      final uid = firebaseUser.uid;
 
       final user = AppUser(id: uid, username: username, email: email);
 
@@ -72,7 +92,7 @@ class AuthService {
         'email': email,
       });
 
-      batch.set(_firestore.collection('publicProfile').doc(uid), {
+      batch.set(_firestore.collection('publicProfiles').doc(uid), {
         'username': user.username,
         'bio': '',
         'profileImageUrl': null,
@@ -85,23 +105,32 @@ class AuthService {
     }
   }
 
-  Future<void> logout() async {
-    await _auth.signOut();
+  Future<bool> isEmailVerified() async {
+    final user = _auth.currentUser;
+
+    if (user == null) {
+      return false;
+    }
+
+    await user.reload();
+
+    final refreshedUser = _auth.currentUser;
+
+    return refreshedUser?.emailVerified ?? false;
   }
 
-  Stream<AppUser?> get authStateChanges {
-    return _auth.authStateChanges().asyncMap((firebaseUser) async {
-      if (firebaseUser == null) return null;
+  Future<void> resendVerificationEmail() async {
+    final user = _auth.currentUser;
 
-      final userDoc = await _firestore
-          .collection('users')
-          .doc(firebaseUser.uid)
-          .get();
+    if (user == null) {
+      throw Exception('No user logged in.');
+    }
 
-      if (!userDoc.exists) return null;
+    await user.sendEmailVerification();
+  }
 
-      return AppUser.fromMap(firebaseUser.uid, userDoc.data()!);
-    });
+  Future<void> logout() async {
+    await _auth.signOut();
   }
 
   Future<void> changePassword({
@@ -146,5 +175,22 @@ class AuthService {
     );
 
     await user.reauthenticateWithCredential(credential);
+  }
+
+  Future<AppUser?> getCurrentAppUser() async {
+    final firebaseUser = _auth.currentUser;
+
+    if (firebaseUser == null || !firebaseUser.emailVerified) {
+      return null;
+    }
+
+    final userDoc = await _firestore
+        .collection('users')
+        .doc(firebaseUser.uid)
+        .get();
+
+    if (!userDoc.exists) return null;
+
+    return AppUser.fromMap(firebaseUser.uid, userDoc.data()!);
   }
 }

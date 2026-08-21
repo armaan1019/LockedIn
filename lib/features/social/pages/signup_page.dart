@@ -156,7 +156,7 @@ class _SignUpPageState extends State<SignUpPage> {
                 /// SIGN UP BUTTON
                 SizedBox(
                   height: 50,
-                  child: ElevatedButton(
+                  child: FilledButton(
                     onPressed: _isLoading ? null : _handleSignUp,
                     child: _isLoading
                         ? const CircularProgressIndicator(color: Colors.white)
