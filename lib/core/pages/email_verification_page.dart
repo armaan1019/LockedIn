@@ -198,7 +198,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                       : const Text('Resend Verification Email'),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
 
                 OutlinedButton(
                   onPressed: _isBusy ? null : _logout,
