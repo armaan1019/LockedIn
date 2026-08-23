@@ -54,4 +54,20 @@ class UserRepository {
         .doc(blockedUserId)
         .delete();
   }
+
+  Future<void> deleteUserBlockedUsers(String userId) async {
+    final blockedRef = await _firestore
+        .collection('users')
+        .doc(userId)
+        .collection('blockedUsers')
+        .get();
+
+    final batch = _firestore.batch();
+
+    for (final doc in blockedRef.docs) {
+      batch.delete(doc.reference);
+    }
+
+    await batch.commit();
+  }
 }

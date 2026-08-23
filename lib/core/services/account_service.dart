@@ -32,6 +32,7 @@ class AccountService {
       postRepository.deleteUserPosts(user.id),
       postRepository.deleteUserPostReports(user.id),
       commentRepository.deleteUserCommentReports(user.id),
+      userRepository.deleteUserBlockedUsers(user.id),
       userRepository.deletePublicProfile(user.id),
     ]);
 
