@@ -144,7 +144,8 @@ class _ProfilePageState extends State<ProfilePage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final isBlocked = context.watch<SessionManager>().blockedUserIds.contains(
+    final sessionManager = context.watch<SessionManager>();
+    final isBlocked = sessionManager.blockedUserIds.contains(
       widget.userId,
     );
 
@@ -180,7 +181,10 @@ class _ProfilePageState extends State<ProfilePage> {
 
               Text(
                 _profile!.username,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               const SizedBox(height: 12),
               Text(
@@ -189,7 +193,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 style: const TextStyle(fontSize: 15),
               ),
               const SizedBox(height: 32),
-              if(widget.userId != context.read<SessionManager>().currentUserId) ...[
+              if (widget.userId !=
+                  sessionManager.currentUserId) ...[
                 SizedBox(
                   width: double.infinity,
                   child: FilledButton(
@@ -197,7 +202,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Text(isBlocked ? 'Unblock' : 'Block'),
                   ),
                 ),
-              ]
+              ],
             ],
           ),
         ),
