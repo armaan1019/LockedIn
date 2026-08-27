@@ -159,43 +159,47 @@ class _ProfilePageState extends State<ProfilePage> {
       appBar: AppBar(title: const Text('Profile')),
       body: Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 45,
-              child: Text(
-                _profile!.username.isNotEmpty
-                    ? _profile!.username[0].toUpperCase()
-                    : '?',
-                style: const TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
+        child: Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              CircleAvatar(
+                radius: 45,
+                child: Text(
+                  _profile!.username.isNotEmpty
+                      ? _profile!.username[0].toUpperCase()
+                      : '?',
+                  style: const TextStyle(
+                    fontSize: 32,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
 
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            Text(
-              _profile!.username,
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              _profile!.bio.isEmpty ? 'No bio' : _profile!.bio,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 15),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: isBlocked ? _unblockUser : _blockUser,
-                child: Text(isBlocked ? 'Unblock' : 'Block'),
+              Text(
+                _profile!.username,
+                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Text(
+                _profile!.bio.isEmpty ? 'No bio' : _profile!.bio,
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 15),
+              ),
+              const SizedBox(height: 32),
+              if(widget.userId != context.read<SessionManager>().currentUserId) ...[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: isBlocked ? _unblockUser : _blockUser,
+                    child: Text(isBlocked ? 'Unblock' : 'Block'),
+                  ),
+                ),
+              ]
+            ],
+          ),
         ),
       ),
     );
