@@ -43,14 +43,10 @@ class _LoginPageState extends State<LoginPage> {
 
       if (!mounted) return;
 
-      if (result == LoginResult.invalidCredentials) {
+      if (result.result == LoginResult.invalidCredentials) {
         setState(() {
           _error = "Invalid username or password.";
         });
-      } else if (result == LoginResult.emailNotVerified) {
-        // Do not set an error here.
-        // SessionManager will cause MyApp to show
-        // EmailVerificationPage.
       }
     } catch (e) {
       if (!mounted) return;
