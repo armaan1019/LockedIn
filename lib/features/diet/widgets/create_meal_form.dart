@@ -178,11 +178,11 @@ class _CreateMealFormState extends State<CreateMealForm> {
                       decoration: const InputDecoration(labelText: 'Food name'),
                     ),
                     actions: [
-                      TextButton(
+                      OutlinedButton(
                         onPressed: () => Navigator.pop(context),
                         child: const Text('Cancel'),
                       ),
-                      ElevatedButton(
+                      FilledButton(
                         onPressed: () =>
                             Navigator.pop(context, queryController.text),
                         child: const Text('Search'),
@@ -213,7 +213,7 @@ class _CreateMealFormState extends State<CreateMealForm> {
             Row(
               children: [
                 Expanded(
-                  child: ElevatedButton(
+                  child: FilledButton(
                     onPressed: _saveMeal,
                     child: Text(
                       widget.isEditing ? 'Save Changes' : 'Add to Today',
@@ -224,7 +224,7 @@ class _CreateMealFormState extends State<CreateMealForm> {
                 const SizedBox(width: 8),
                 if (!widget.isEditing)
                   Expanded(
-                    child: ElevatedButton(
+                    child: FilledButton(
                       onPressed: () {
                         if (widget.onSaveTemplate == null) return;
                         if (_mealNameController.text.isEmpty ||

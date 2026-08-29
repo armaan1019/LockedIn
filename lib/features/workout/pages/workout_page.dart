@@ -260,6 +260,7 @@ class _WorkoutPageState extends State<WorkoutPage> {
 
       await showModalBottomSheet(
         context: context,
+        showDragHandle: true,
         isScrollControlled: true,
         builder: (_) => SizedBox(
           height: MediaQuery.of(context).size.height * 0.7,
