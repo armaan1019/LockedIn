@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../services/food_api.dart';
-import '../models/food.dart';
-import 'barcode_scanner_page.dart';
+//import '../services/food_api.dart';
+//import '../models/food.dart';
+//import 'barcode_scanner_page.dart';
 import 'saved_meals_page.dart';
 import '../widgets/meal_card.dart';
 import '../widgets/macro_info.dart';
 import '../widgets/create_meal_form.dart';
 import '../models/saved_meal.dart';
-import '../models/ingredient.dart';
+//import '../models/ingredient.dart';
 import '../models/meal_entry.dart';
 import '../repositories/diet_repository.dart';
 
@@ -59,9 +59,9 @@ class _DietPageState extends State<DietPage> {
     (previousValue, mealEntry) => previousValue + mealEntry.meal.calories,
   );
 
-  Ingredient _ingredientFromFood(Food food) {
+  /*Ingredient _ingredientFromFood(Food food) {
     return Ingredient(id: '', food: food, servings: 1.0);
-  }
+  }*/
 
   Future<void> _changeDate(int days) async {
     setState(() {
@@ -195,7 +195,7 @@ class _DietPageState extends State<DietPage> {
     );
   }
 
-  Future<void> _scanBarcodeAndAddMeal() async {
+  /*Future<void> _scanBarcodeAndAddMeal() async {
     // Navigate to barcode scanner and wait for result
     final barcode = await Navigator.push<String>(
       context,
@@ -231,7 +231,7 @@ class _DietPageState extends State<DietPage> {
         ),
       ),
     );
-  }
+  }*/
 
   Future<void> _addMeal(MealEntry mealEntry) async {
     final dietRepo = context.read<DietRepository?>();

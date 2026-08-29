@@ -285,7 +285,7 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Your workout is still in progress. Are you sure you want to leave?',
+                  'Your workout will be saved. Are you sure you want to leave?',
                 ),
                 const SizedBox(height: 24),
                 Row(
@@ -339,111 +339,118 @@ class _WorkoutTrackerPageState extends State<WorkoutTrackerPage> {
             ),
           ],
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Text(
-                currentExercise.name,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Expanded(
-                child: ListView.builder(
-                  itemCount: currentExercise.sets.length,
-                  itemBuilder: (context, index) {
-                    final set = currentExercise.sets[index];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 4),
-                      child: ListTile(
-                        leading: Text('Set ${index + 1}'),
-                        title: Text('${set.reps} reps'),
-                        subtitle: set.weight != null
-                            ? Text('${set.weight} lbs')
-                            : const Text('No weight'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              onPressed: () => _editSet(set),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteSet(index),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              TextField(
-                controller: _repsController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Reps',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: _weightController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Weight (optional)',
-                  border: OutlineInputBorder(),
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  // PREVIOUS (left)
-                  Expanded(
-                    child: currentExerciseIndex > 0
-                        ? OutlinedButton(
-                            onPressed: () {
-                              setState(() {
-                                currentExerciseIndex--;
-                              });
-                            },
-                            child: const Text('Previous'),
-                          )
-                        : const SizedBox(),
+        body: GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            FocusScope.of(context).unfocus();
+          },
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                Text(
+                  currentExercise.name,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
                   ),
-
-                  const SizedBox(width: 12),
-
-                  // ADD SET (center)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _addSet,
-                      child: const Text('Add Set'),
-                    ),
-                  ),
-
-                  const SizedBox(width: 12),
-
-                  // NEXT / FINISH (right)
-                  Expanded(
-                    child: currentExerciseIndex < exerciseSessions.length - 1
-                        ? OutlinedButton(
-                            onPressed: _nextExercise,
-                            child: const Text('Next'),
-                          )
-                        : FilledButton(
-                            onPressed: _finishWorkout,
-                            child: const Text('Finish'),
+                ),
+                const SizedBox(height: 16),
+                Expanded(
+                  child: ListView.builder(
+                    keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                    itemCount: currentExercise.sets.length,
+                    itemBuilder: (context, index) {
+                      final set = currentExercise.sets[index];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                        child: ListTile(
+                          leading: Text('Set ${index + 1}'),
+                          title: Text('${set.reps} reps'),
+                          subtitle: set.weight != null
+                              ? Text('${set.weight} lbs')
+                              : const Text('No weight'),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                onPressed: () => _editSet(set),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteSet(index),
+                              ),
+                            ],
                           ),
+                        ),
+                      );
+                    },
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-            ],
+                ),
+                TextField(
+                  controller: _repsController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Reps',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _weightController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Weight (optional)',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    // PREVIOUS (left)
+                    Expanded(
+                      child: currentExerciseIndex > 0
+                          ? OutlinedButton(
+                              onPressed: () {
+                                setState(() {
+                                  currentExerciseIndex--;
+                                });
+                              },
+                              child: const Text('Previous'),
+                            )
+                          : const SizedBox(),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // ADD SET (center)
+                    Expanded(
+                      child: OutlinedButton(
+                        onPressed: _addSet,
+                        child: const Text('Add Set'),
+                      ),
+                    ),
+
+                    const SizedBox(width: 12),
+
+                    // NEXT / FINISH (right)
+                    Expanded(
+                      child: currentExerciseIndex < exerciseSessions.length - 1
+                          ? OutlinedButton(
+                              onPressed: _nextExercise,
+                              child: const Text('Next'),
+                            )
+                          : FilledButton(
+                              onPressed: _finishWorkout,
+                              child: const Text('Finish'),
+                            ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+            ),
           ),
         ),
       ),
